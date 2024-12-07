@@ -213,6 +213,12 @@ GLint g_view_uniform;
 GLint g_projection_uniform;
 GLint g_object_id_uniform;
 
+// Variáveis que definem as possibilidades de movimento da câmera livre
+bool front = false;
+bool back = false;
+bool left = false;
+bool right = false;
+
 int main(int argc, char* argv[])
 {
     // Inicializamos a biblioteca GLFW, utilizada para criar uma janela do
@@ -316,6 +322,14 @@ int main(int argc, char* argv[])
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
 
+    glm::vec4 camera_position_c = glm::vec4(2.0f, 2.0f, 4.0f, 1.0f); // Ponto "c", centro da câmera inicializado em um ponto definido
+    glm::vec4 camera_view_vector = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f); // Vetor "view", sentido para onde a câmera está virada
+    glm::vec4 camera_up_vector = glm::vec4(0.0f, 1.0f, 0.0f, 0.0f); // Vetor "up" fixado para apontar para o "céu" (eito Y global)
+
+    // Variáveis para calcular delta_t inicializadas
+    float old_seconds = (float)glfwGetTime();
+    float delta_t;
+
     // Ficamos em um loop infinito, renderizando, até que o usuário feche a janela
     while (!glfwWindowShouldClose(window))
     {
@@ -346,16 +360,45 @@ int main(int argc, char* argv[])
         float z = r*cos(g_CameraPhi)*cos(g_CameraTheta);
         float x = r*cos(g_CameraPhi)*sin(g_CameraTheta);
 
+        // Recuperamos o número de segundos que passou desde o último frame
+        delta_t = (float)glfwGetTime() - old_seconds;
+
+        // Abaixo definimos as funções de movimento da câmera livre para cada umas das 4 direções possíveis
+        if (front) {
+            glm::vec4 w = camera_view_vector;
+            w = w / norm(w);
+            camera_position_c +=  w * 2.0f * delta_t;
+        }
+
+        if (back) {
+            glm::vec4 w = -camera_view_vector;
+            w = w / norm(w);
+            camera_position_c += w * 2.0f * delta_t;
+        }
+
+        if (left) {
+            glm::vec4 u = crossproduct(camera_up_vector, camera_view_vector);
+            u = u / norm(u);
+            camera_position_c += u * 2.0f * delta_t;
+        }
+
+        if (right) {
+            glm::vec4 u = crossproduct(camera_up_vector, -camera_view_vector);
+            u = u / norm(u);
+            camera_position_c += u * 2.0f * delta_t;
+        }
+
         // Abaixo definimos as varáveis que efetivamente definem a câmera virtual.
         // Veja slides 195-227 e 229-234 do documento Aula_08_Sistemas_de_Coordenadas.pdf.
-        glm::vec4 camera_position_c  = glm::vec4(x,y,z,1.0f); // Ponto "c", centro da câmera
-        glm::vec4 camera_lookat_l    = glm::vec4(0.0f,0.0f,0.0f,1.0f); // Ponto "l", para onde a câmera (look-at) estará sempre olhando
-        glm::vec4 camera_view_vector = camera_lookat_l - camera_position_c; // Vetor "view", sentido para onde a câmera está virada
+        camera_view_vector = glm::vec4(x, y, z, 0.0f); // Vetor "view", sentido para onde a câmera está virada
         glm::vec4 camera_up_vector   = glm::vec4(0.0f,1.0f,0.0f,0.0f); // Vetor "up" fixado para apontar para o "céu" (eito Y global)
 
         // Computamos a matriz "View" utilizando os parâmetros da câmera para
         // definir o sistema de coordenadas da câmera.  Veja slides 2-14, 184-190 e 236-242 do documento Aula_08_Sistemas_de_Coordenadas.pdf.
         glm::mat4 view = Matrix_Camera_View(camera_position_c, camera_view_vector, camera_up_vector);
+
+        // Salva número de segundos que passou para fazer o frame refresh
+        old_seconds = (float)glfwGetTime();
 
         // Agora computamos a matriz de Projeção.
         glm::mat4 projection;
@@ -1063,6 +1106,51 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
         if (key == GLFW_KEY_0 + i && action == GLFW_PRESS && mod == GLFW_MOD_SHIFT)
             std::exit(100 + i);
     // ====================
+
+    if (key == GLFW_KEY_W) {
+        if (action == GLFW_PRESS) {
+            // W pressionado
+            front = true;
+        }
+        else if (action == GLFW_RELEASE) {
+            // W solto (câmera deve parar de se movimentar)
+            front = false;
+        }
+    }
+
+    if (key == GLFW_KEY_S) {
+        if (action == GLFW_PRESS) {
+            // S pressionado
+            back = true;
+        }
+        else if (action == GLFW_RELEASE) {
+            // S solto (câmera deve parar de se movimentar)
+            back = false;
+        }
+    }
+
+    if (key == GLFW_KEY_D) {
+        if (action == GLFW_PRESS) {
+            // D pressionado
+            right = true;
+        }
+        else if (action == GLFW_RELEASE) {
+            // D solto (câmera deve parar de se movimentar)
+            right = false;
+        }
+    }
+
+    if (key == GLFW_KEY_A) {
+        if (action == GLFW_PRESS) {
+            // A pressionado
+            left = true;
+        }
+        else if (action == GLFW_RELEASE) {
+            // A solto (câmera deve parar de se movimentar)
+            left = false;
+        }
+    }
+
 
     // Se o usuário pressionar a tecla ESC, fechamos a janela.
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
