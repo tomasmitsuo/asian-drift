@@ -1107,6 +1107,51 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
             std::exit(100 + i);
     // ====================
 
+    if (key == GLFW_KEY_W) {
+        if (action == GLFW_PRESS) {
+            // W pressionado
+            front = true;
+        }
+        else if (action == GLFW_RELEASE) {
+            // W solto (câmera deve parar de se movimentar)
+            front = false;
+        }
+    }
+
+    if (key == GLFW_KEY_S) {
+        if (action == GLFW_PRESS) {
+            // S pressionado
+            back = true;
+        }
+        else if (action == GLFW_RELEASE) {
+            // S solto (câmera deve parar de se movimentar)
+            back = false;
+        }
+    }
+
+    if (key == GLFW_KEY_D) {
+        if (action == GLFW_PRESS) {
+            // D pressionado
+            right = true;
+        }
+        else if (action == GLFW_RELEASE) {
+            // D solto (câmera deve parar de se movimentar)
+            right = false;
+        }
+    }
+
+    if (key == GLFW_KEY_A) {
+        if (action == GLFW_PRESS) {
+            // A pressionado
+            left = true;
+        }
+        else if (action == GLFW_RELEASE) {
+            // A solto (câmera deve parar de se movimentar)
+            left = false;
+        }
+    }
+
+
     // Se o usuário pressionar a tecla ESC, fechamos a janela.
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
         glfwSetWindowShouldClose(window, GL_TRUE);
