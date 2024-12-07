@@ -1,0 +1,4 @@
+/home/kenji/github/asian-drift/build/CMakeFiles/main.dir
+/home/kenji/github/asian-drift/build/CMakeFiles/run.dir
+/home/kenji/github/asian-drift/build/CMakeFiles/edit_cache.dir
+/home/kenji/github/asian-drift/build/CMakeFiles/rebuild_cache.dir
