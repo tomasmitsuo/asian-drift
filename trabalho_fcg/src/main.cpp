@@ -549,6 +549,8 @@ void CarMovement(bool look_at, Car* car, Box* car_collision, glm::vec4* camera_p
     car->direction = car->direction * car->velocity * delta_t;
     car->direction.y = car->gravity  * delta_t;
 
+    car->position += car->direction;
+
 
 }
 
