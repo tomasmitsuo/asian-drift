@@ -40,8 +40,9 @@
 #include "matrices.h"
 #include "textrendering.h"
 #include "collisions.h"
-#include "car.h"
-#include "box.h"
+#include "classes_temporary.h"
+//#include "car.h"
+//#include "box.h"
 
 
 //MINHAS CONSTANTES
