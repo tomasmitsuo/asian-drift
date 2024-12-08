@@ -8,7 +8,7 @@
 //            TRABALHO FINAL ASIAN DRIFT    2024/2
 //
 // GABRIEL KENJI YATSUDA IKUTA 0037491
-// TOMAS MISTUO UEDA
+// TOMAS MITSUO UEDA
 
 // BIBLIOTECAS STANDARD
 #include <cstdio>
@@ -138,7 +138,7 @@ void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset);
 void CameraProjection(glm::vec4 camera_position_c, glm::vec4 camera_view_vector, glm::vec4 camera_up_vector); 
 void CameraMovement(bool look_at, Car* car, glm::vec4* camera_position_c, glm::vec4* camera_view_vector, glm::vec4 camera_up_vector, float delta_t);
 void CarMovement(bool look_at, Car* car, Box* car_collision, glm::vec4* camera_position_c, glm::vec4* camera_view_vector, glm::vec4 camera_up_vector, float delta_t);
-
+void DrawCar(glm::vec4 camera_view_vector);
 
 // Definimos uma estrutura que armazenará dados necessários para renderizar
 // cada objeto da cena virtual.
@@ -219,7 +219,7 @@ Car temporary_bunny;
 
 
 // Variáveis para alternar entre câmera livre e câmera look_at
-bool look_at = false;
+bool look_at = true;
 bool switch_camera_type = false;
 
 int main(int argc, char* argv[])
@@ -356,13 +356,13 @@ int main(int argc, char* argv[])
 
 
         #define SPHERE 0
-        #define BUNNY  1
+        #define TEMPORARY_BUNNY  1
         #define PLANE  2
 
 
         //Chama funções auxiliares para desenhar os objetos
         //DrawPlanes();
-        //DrawBunny();
+        DrawCar(camera_view_vector);
 
         // Desenhamos o modelo da esfera
         model = Matrix_Translate(-1.0f,0.0f,0.0f);
@@ -371,14 +371,6 @@ int main(int argc, char* argv[])
         DrawVirtualObject("the_sphere");
 
         // Desenhamos o modelo do coelho
-        model = Matrix_Translate(1.0f,0.0f,0.0f)
-              * Matrix_Rotate_Z(g_AngleZ)
-              * Matrix_Rotate_Y(g_AngleY)
-              * Matrix_Rotate_X(g_AngleX);
-        glUniformMatrix4fv(g_model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-        glUniform1i(g_object_id_uniform, BUNNY);
-        DrawVirtualObject("the_bunny");
-
         // Desenhamos o modelo do plano (chão)
         model = Matrix_Scale(10.0, 1.0, 10.0)
             * Matrix_Translate(0.0f, -1.0f, 0.0f)
@@ -411,6 +403,31 @@ int main(int argc, char* argv[])
 
     // Fim do programa
     return 0;
+}
+
+//Desenha o personagem
+void DrawCar(glm::vec4 camera_view_vector) {
+    if (look_at) {
+        glm::mat4 model = Matrix_Identity();
+        glm::vec4 w = (camera_view_vector);
+        w.y = 0;
+        w = normalize(w);
+        glm::vec4 normal = glm::vec4(0.0, 0.0, 1.0, 0.0);
+
+        float cos_theta = dotproduct(w, normal) / (norm(w) * norm(normal));
+        float theta = acos(cos_theta);
+        if (w.x < 0)
+            theta = -acos(cos_theta);
+
+        model = Matrix_Translate(temporary_bunny.position.x, temporary_bunny.position.y, temporary_bunny.position.z) *
+            Matrix_Rotate_Y(theta) *
+            Matrix_Translate(0.22, -0.5, 0.15) *
+            Matrix_Scale(0.5f, 0.5f, 0.5f);
+        glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
+        glUniform1i(g_object_id_uniform, TEMPORARY_BUNNY);
+        DrawVirtualObject("madeline");
+    }
+
 }
 
 void CameraProjection(glm::vec4 camera_position_c, glm::vec4 camera_view_vector, glm::vec4 camera_up_vector) {
@@ -509,6 +526,7 @@ void CarMovement(bool look_at, Car* car, Box* car_collision, glm::vec4* camera_p
         u = u / norm(u);
         car->direction += u;
     }
+
 
 
     car_collision->position = car->position;
