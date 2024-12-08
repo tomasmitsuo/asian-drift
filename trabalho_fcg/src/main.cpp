@@ -393,6 +393,10 @@ int main(int argc, char* argv[])
 
         CameraProjection(camera_position_c, camera_view_vector, camera_up_vector);
 
+        printf("Car Position: (%.2f, %.2f, %.2f)\n", temporary_bunny.position.x, temporary_bunny.position.y, temporary_bunny.position.z);
+        printf("Direction: (%.2f, %.2f, %.2f)\n", temporary_bunny.direction.x, temporary_bunny.direction.y, temporary_bunny.direction.z);
+        printf("Velocity: %.2f\n", temporary_bunny.velocity);
+
         glBindVertexArray(0);
         TextRendering_ShowFramesPerSecond(window);
         glfwSwapBuffers(window);
