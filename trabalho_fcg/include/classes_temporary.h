@@ -6,9 +6,8 @@ struct Car
 {
     glm::vec4   position;
     glm::vec4   direction = glm::vec4 (0.0f, 0.0f, 0.0f, 0.0f);
-    glm::vec4   direction_dash = glm::vec4 (0.0f, 0.0f, 0.0f, 0.0f);
     float       gravity = -4.0;
-    float       velocity = 1.0;
+    float       velocity = 5.0;
 };
 
 struct Box

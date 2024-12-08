@@ -207,7 +207,7 @@ bool left = false;
 bool right = false;
 
 // Ponto de start para marcar onde ele começa
-glm::vec4 start = glm::vec4(0.0f, 4.0f, 0.0f, 1.0f);
+glm::vec4 start = glm::vec4(0.0f, 0.50f, 0.0f, 1.0f);
 
 // Inicializamos nosso carro, que por enquanto é um coelho
 Car temporary_bunny;
@@ -328,9 +328,9 @@ int main(int argc, char* argv[])
 
     //Inicializamos as câmeras
 
-    glm::vec4 camera_position_c = start ; // Ponto "c", centro da câmera inicializado onde o carro começa
+    glm::vec4 camera_position_c = glm::vec4(10.0f, 10.0f, 10.0f, 1.0f); // Ponto "c", centro da câmera inicializado onde o carro começa
     temporary_bunny.position = start; // Ponto "l", para onde a câmera (look-at) estará sempre olhando
-    glm::vec4 camera_view_vector = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f); // Vetor "view", sentido para onde a câmera está virada
+    glm::vec4 camera_view_vector = temporary_bunny.position - camera_position_c; // Vetor "view", sentido para onde a câmera está virada
     glm::vec4 camera_up_vector = glm::vec4(0.0f, 1.0f, 0.0f, 0.0f); // Vetor "up" fixado para apontar para o "céu" (eito Y global)
 
     // Variáveis para calcular delta_t inicializadas
@@ -355,7 +355,7 @@ int main(int argc, char* argv[])
 
 
         #define SPHERE 0
-        #define TEMPORARY_BUNNY  1
+        #define BUNNY  1
         #define PLANE  2
 
 
@@ -396,6 +396,7 @@ int main(int argc, char* argv[])
         printf("Car Position: (%.2f, %.2f, %.2f)\n", temporary_bunny.position.x, temporary_bunny.position.y, temporary_bunny.position.z);
         printf("Direction: (%.2f, %.2f, %.2f)\n", temporary_bunny.direction.x, temporary_bunny.direction.y, temporary_bunny.direction.z);
         printf("Velocity: %.2f\n", temporary_bunny.velocity);
+        printf("Camera Position: (%.2f, %.2f, %.2f)\n", camera_position_c.x, camera_position_c.y, camera_position_c.z);
 
         glBindVertexArray(0);
         TextRendering_ShowFramesPerSecond(window);
@@ -429,8 +430,8 @@ void DrawCar(glm::vec4 camera_view_vector) {
             Matrix_Translate(0.22, -0.5, 0.15) *
             Matrix_Scale(0.5f, 0.5f, 0.5f);
         glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
-        glUniform1i(g_object_id_uniform, TEMPORARY_BUNNY);
-        DrawVirtualObject("car");
+        glUniform1i(g_object_id_uniform, BUNNY);
+        DrawVirtualObject("the_bunny");
     }
 
 }
@@ -487,7 +488,7 @@ void CameraMovement(bool look_at, Car* car, glm::vec4* camera_position_c, glm::v
     float x = r * cos(g_CameraPhi) * sin(g_CameraTheta);
 
     if (look_at) {
-        (*camera_position_c) = car->position + glm::vec4(x, y, z, 0.0f);
+        (*camera_position_c) = car->position + glm::vec4(x, y, z, 0.0f) ;
         (*camera_view_vector) = car->position - *camera_position_c;
     }
     else {
@@ -547,7 +548,7 @@ void CarMovement(bool look_at, Car* car, Box* car_collision, glm::vec4* camera_p
         car->velocity+=delta_t;
 
     car->direction = car->direction * car->velocity * delta_t;
-    car->direction.y = car->gravity  * delta_t;
+    //car->direction.y = car->gravity  * delta_t;
 
     car->position += car->direction;
 
