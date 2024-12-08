@@ -374,8 +374,5 @@ CMakeFiles/main.dir/src/main.cpp.o: \
  /home/kenji/github/asian-drift/trabalho_fcg/include/utils.h \
  /home/kenji/github/asian-drift/trabalho_fcg/include/dejavufont.h \
  /home/kenji/github/asian-drift/trabalho_fcg/include/collisions.h \
- /home/kenji/github/asian-drift/trabalho_fcg/include/car.h \
- /home/kenji/github/asian-drift/trabalho_fcg/include/box.h \
- /home/kenji/github/asian-drift/trabalho_fcg/include/matrices.h \
- /home/kenji/github/asian-drift/trabalho_fcg/include/car.h \
- /home/kenji/github/asian-drift/trabalho_fcg/include/box.h
+ /home/kenji/github/asian-drift/trabalho_fcg/include/classes_temporary.h \
+ /home/kenji/github/asian-drift/trabalho_fcg/include/matrices.h

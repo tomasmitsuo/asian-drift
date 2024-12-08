@@ -1,8 +1,9 @@
 #include <glm/mat4x4.hpp>
 #include <glm/vec4.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include "car.h"
-#include "box.h"
+//#include "car.h"
+//#include "box.h"
+#include "classes_temporary.h"
 #include "matrices.h"
 
 bool PointPlaneCollision(glm::vec4 point_a, glm::vec4 point_b, Box plane){

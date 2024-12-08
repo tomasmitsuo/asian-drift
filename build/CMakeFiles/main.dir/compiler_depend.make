@@ -488,11 +488,8 @@ CMakeFiles/main.dir/src/main.cpp.o: /home/kenji/github/asian-drift/trabalho_fcg/
   /home/kenji/github/asian-drift/trabalho_fcg/include/utils.h \
   /home/kenji/github/asian-drift/trabalho_fcg/include/dejavufont.h \
   /home/kenji/github/asian-drift/trabalho_fcg/include/collisions.h \
-  /home/kenji/github/asian-drift/trabalho_fcg/include/car.h \
-  /home/kenji/github/asian-drift/trabalho_fcg/include/box.h \
-  /home/kenji/github/asian-drift/trabalho_fcg/include/matrices.h \
-  /home/kenji/github/asian-drift/trabalho_fcg/include/car.h \
-  /home/kenji/github/asian-drift/trabalho_fcg/include/box.h
+  /home/kenji/github/asian-drift/trabalho_fcg/include/classes_temporary.h \
+  /home/kenji/github/asian-drift/trabalho_fcg/include/matrices.h
 
 CMakeFiles/main.dir/src/tiny_obj_loader.cpp.o: /home/kenji/github/asian-drift/trabalho_fcg/src/tiny_obj_loader.cpp \
   /usr/include/stdc-predef.h \
@@ -1038,8 +1035,6 @@ CMakeFiles/main.dir/src/tiny_obj_loader.cpp.o: /home/kenji/github/asian-drift/tr
 
 /usr/include/x86_64-linux-gnu/bits/types/locale_t.h:
 
-/home/kenji/github/asian-drift/trabalho_fcg/include/box.h:
-
 /usr/include/x86_64-linux-gnu/bits/wctype-wchar.h:
 
 /usr/include/c++/11/array:
@@ -1215,6 +1210,8 @@ CMakeFiles/main.dir/src/tiny_obj_loader.cpp.o: /home/kenji/github/asian-drift/tr
 /usr/include/x86_64-linux-gnu/bits/stdint-intn.h:
 
 /usr/include/x86_64-linux-gnu/bits/types.h:
+
+/home/kenji/github/asian-drift/trabalho_fcg/include/classes_temporary.h:
 
 /usr/include/c++/11/cmath:
 
@@ -1395,8 +1392,6 @@ CMakeFiles/main.dir/src/tiny_obj_loader.cpp.o: /home/kenji/github/asian-drift/tr
 /usr/include/c++/11/bits/vector.tcc:
 
 /usr/include/c++/11/limits:
-
-/home/kenji/github/asian-drift/trabalho_fcg/include/car.h:
 
 /home/kenji/github/asian-drift/trabalho_fcg/include/glm/ext/vector_double2_precision.hpp:
 
