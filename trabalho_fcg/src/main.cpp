@@ -180,17 +180,10 @@ bool g_MiddleMouseButtonPressed = false;
 // usuário através do mouse (veja função CursorPosCallback()). A posição
 // efetiva da câmera é calculada dentro da função main(), dentro do loop de
 // renderização.
-float g_CameraTheta = 0.0f; // Ângulo no plano ZX em relação ao eixo Z
-float g_CameraPhi = 0.0f;   // Ângulo em relação ao eixo Y
-float g_CameraDistance = 3.5f; // Distância da câmera para a origem
+float g_CameraTheta = 3.6f; // Ângulo no plano ZX em relação ao eixo Z
+float g_CameraPhi = -0.5f;   // Ângulo em relação ao eixo Y
+float g_CameraDistance = 2.5f; // Distância da câmera para a origem
 
-// Variáveis que controlam rotação do antebraço
-float g_ForearmAngleZ = 0.0f;
-float g_ForearmAngleX = 0.0f;
-
-// Variáveis que controlam translação do torso
-float g_TorsoPositionX = 0.0f;
-float g_TorsoPositionY = 0.0f;
 
 // Variável que controla o tipo de projeção utilizada: perspectiva ou ortográfica.
 bool g_UsePerspectiveProjection = true;
@@ -204,6 +197,8 @@ GLint g_model_uniform;
 GLint g_view_uniform;
 GLint g_projection_uniform;
 GLint g_object_id_uniform;
+GLint g_bbox_min_uniform;
+GLint g_bbox_max_uniform;
 
 // Variáveis que definem as possibilidades de movimento da câmera livre
 bool front = false;
@@ -219,7 +214,7 @@ Car temporary_bunny;
 
 
 // Variáveis para alternar entre câmera livre e câmera look_at
-bool look_at = true;
+bool look_at = false;
 bool switch_camera_type = false;
 
 int main(int argc, char* argv[])
@@ -309,11 +304,15 @@ int main(int argc, char* argv[])
     ComputeNormals(&planemodel);
     BuildTrianglesAndAddToVirtualScene(&planemodel);
 
+    /*
     if ( argc > 1 )
     {
         ObjModel model(argv[1]);
         BuildTrianglesAndAddToVirtualScene(&model);
     }
+
+    */
+    // Construímos a representação de um triângulo
 
     // Inicializamos o código para renderização de texto.
     TextRendering_Init();
@@ -329,7 +328,7 @@ int main(int argc, char* argv[])
 
     //Inicializamos as câmeras
 
-    glm::vec4 camera_position_c = start; // Ponto "c", centro da câmera inicializado onde o carro começa
+    glm::vec4 camera_position_c = start ; // Ponto "c", centro da câmera inicializado onde o carro começa
     temporary_bunny.position = start; // Ponto "l", para onde a câmera (look-at) estará sempre olhando
     glm::vec4 camera_view_vector = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f); // Vetor "view", sentido para onde a câmera está virada
     glm::vec4 camera_up_vector = glm::vec4(0.0f, 1.0f, 0.0f, 0.0f); // Vetor "up" fixado para apontar para o "céu" (eito Y global)
@@ -362,6 +361,8 @@ int main(int argc, char* argv[])
 
         //Chama funções auxiliares para desenhar os objetos
         //DrawPlanes();
+
+        //desenha o coelho
         DrawCar(camera_view_vector);
 
         // Desenhamos o modelo da esfera
@@ -370,7 +371,6 @@ int main(int argc, char* argv[])
         glUniform1i(g_object_id_uniform, SPHERE);
         DrawVirtualObject("the_sphere");
 
-        // Desenhamos o modelo do coelho
         // Desenhamos o modelo do plano (chão)
         model = Matrix_Scale(10.0, 1.0, 10.0)
             * Matrix_Translate(0.0f, -1.0f, 0.0f)
@@ -393,6 +393,7 @@ int main(int argc, char* argv[])
 
         CameraProjection(camera_position_c, camera_view_vector, camera_up_vector);
 
+        glBindVertexArray(0);
         TextRendering_ShowFramesPerSecond(window);
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -425,7 +426,7 @@ void DrawCar(glm::vec4 camera_view_vector) {
             Matrix_Scale(0.5f, 0.5f, 0.5f);
         glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
         glUniform1i(g_object_id_uniform, TEMPORARY_BUNNY);
-        DrawVirtualObject("madeline");
+        DrawVirtualObject("car");
     }
 
 }
@@ -1215,10 +1216,6 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
         g_AngleX = 0.0f;
         g_AngleY = 0.0f;
         g_AngleZ = 0.0f;
-        g_ForearmAngleX = 0.0f;
-        g_ForearmAngleZ = 0.0f;
-        g_TorsoPositionX = 0.0f;
-        g_TorsoPositionY = 0.0f;
     }
 
     // Se o usuário apertar a tecla P, utilizamos projeção perspectiva.
