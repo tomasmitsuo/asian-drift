@@ -133,6 +133,12 @@ void MouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
 void CursorPosCallback(GLFWwindow* window, double xpos, double ypos);
 void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset);
 
+// Funções auxiliares
+void CameraProjection(glm::vec4 camera_position_c, glm::vec4 camera_view_vector, glm::vec4 camera_up_vector); 
+void CameraMovement(bool look_at, Car* car, glm::vec4* camera_position_c, glm::vec4* camera_view_vector, glm::vec4 camera_up_vector, float delta_t);
+void CarMovement(bool look_at, Car* car, Box* car_collision, glm::vec4* camera_position_c, glm::vec4* camera_view_vector, glm::vec4 camera_up_vector, float delta_t);
+
+
 // Definimos uma estrutura que armazenará dados necessários para renderizar
 // cada objeto da cena virtual.
 struct SceneObject
@@ -373,7 +379,7 @@ int main(int argc, char* argv[])
         DrawVirtualObject("the_bunny");
 
         // Desenhamos o modelo do plano (chão)
-        model = Matrix_Scale(2.0, 1.0, 2.0)
+        model = Matrix_Scale(10.0, 1.0, 10.0)
             * Matrix_Translate(0.0f, -1.0f, 0.0f)
             * Matrix_Rotate_Z(g_AngleZ)
             * Matrix_Rotate_Y(g_AngleY)
