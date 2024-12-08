@@ -39,6 +39,13 @@
 #include "utils.h"
 #include "matrices.h"
 #include "textrendering.h"
+#include "collisions.h"
+#include "car.h"
+#include "box.h"
+
+
+//MINHAS CONSTANTES
+#define MY_PIE   3.14159265358979323846
 
 
 // Estrutura que representa um modelo geométrico carregado a partir de um
@@ -197,6 +204,17 @@ bool back = false;
 bool left = false;
 bool right = false;
 
+// Ponto de start para marcar onde ele começa
+glm::vec4 start = glm::vec4(0.0f, 4.0f, 0.0f, 1.0f);
+
+// Inicializamos nosso carro, que por enquanto é um coelho
+Car temporary_bunny;
+
+
+// Variáveis para alternar entre câmera livre e câmera look_at
+bool look_at = false;
+bool switch_camera_type = false;
+
 int main(int argc, char* argv[])
 {
     // Inicializamos a biblioteca GLFW, utilizada para criar uma janela do
@@ -301,7 +319,11 @@ int main(int argc, char* argv[])
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
 
-    glm::vec4 camera_position_c = glm::vec4(2.0f, 2.0f, 4.0f, 1.0f); // Ponto "c", centro da câmera inicializado em um ponto definido
+
+    //Inicializamos as câmeras
+
+    glm::vec4 camera_position_c = start; // Ponto "c", centro da câmera inicializado onde o carro começa
+    temporary_bunny.position = start; // Ponto "l", para onde a câmera (look-at) estará sempre olhando
     glm::vec4 camera_view_vector = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f); // Vetor "view", sentido para onde a câmera está virada
     glm::vec4 camera_up_vector = glm::vec4(0.0f, 1.0f, 0.0f, 0.0f); // Vetor "up" fixado para apontar para o "céu" (eito Y global)
 
@@ -309,112 +331,31 @@ int main(int argc, char* argv[])
     float old_seconds = (float)glfwGetTime();
     float delta_t;
 
+    // Caixa de colisão do carro (temporary bunny)
+    Box temporary_bunny_collision (temporary_bunny.position, glm::vec4(0.0f, 1.0f, 0.0f, 0.0f), 0.5, 0.25, 0.25, 0);
+
     // Ficamos em um loop infinito, renderizando, até que o usuário feche a janela
     while (!glfwWindowShouldClose(window))
     {
-        // Aqui executamos as operações de renderização
-
-        // Definimos a cor do "fundo" do framebuffer como branco.  
-        //           R     G     B     A
         glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-
-        // "Pintamos" todos os pixels do framebuffer com a cor definida acima,
-        // e também resetamos todos os pixels do Z-buffer (depth buffer).
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        // Pedimos para a GPU utilizar o programa de GPU criado acima (contendo
-        // os shaders de vértice e fragmentos).
         glUseProgram(g_GpuProgramID);
 
-        // Computamos a posição da câmera utilizando coordenadas esféricas.  As
-        // variáveis g_CameraDistance, g_CameraPhi, e g_CameraTheta são
-        // controladas pelo mouse do usuário. Veja as funções CursorPosCallback()
-        // e ScrollCallback().
-        float r = g_CameraDistance;
-        float y = r*sin(g_CameraPhi);
-        float z = r*cos(g_CameraPhi)*cos(g_CameraTheta);
-        float x = r*cos(g_CameraPhi)*sin(g_CameraTheta);
 
         // Recuperamos o número de segundos que passou desde o último frame
         delta_t = (float)glfwGetTime() - old_seconds;
 
-        // Abaixo definimos as funções de movimento da câmera livre para cada umas das 4 direções possíveis
-        if (front) {
-            glm::vec4 w = camera_view_vector;
-            w = w / norm(w);
-            camera_position_c +=  w * 2.0f * delta_t;
-        }
-
-        if (back) {
-            glm::vec4 w = -camera_view_vector;
-            w = w / norm(w);
-            camera_position_c += w * 2.0f * delta_t;
-        }
-
-        if (left) {
-            glm::vec4 u = crossproduct(camera_up_vector, camera_view_vector);
-            u = u / norm(u);
-            camera_position_c += u * 2.0f * delta_t;
-        }
-
-        if (right) {
-            glm::vec4 u = crossproduct(camera_up_vector, -camera_view_vector);
-            u = u / norm(u);
-            camera_position_c += u * 2.0f * delta_t;
-        }
-
-        // Abaixo definimos as varáveis que efetivamente definem a câmera virtual.
-        // Veja slides 195-227 e 229-234 do documento Aula_08_Sistemas_de_Coordenadas.pdf.
-        camera_view_vector = glm::vec4(x, y, z, 0.0f); // Vetor "view", sentido para onde a câmera está virada
-        glm::vec4 camera_up_vector   = glm::vec4(0.0f,1.0f,0.0f,0.0f); // Vetor "up" fixado para apontar para o "céu" (eito Y global)
-
-        // Computamos a matriz "View" utilizando os parâmetros da câmera para
-        // definir o sistema de coordenadas da câmera.  Veja slides 2-14, 184-190 e 236-242 do documento Aula_08_Sistemas_de_Coordenadas.pdf.
-        glm::mat4 view = Matrix_Camera_View(camera_position_c, camera_view_vector, camera_up_vector);
-
-        // Salva número de segundos que passou para fazer o frame refresh
-        old_seconds = (float)glfwGetTime();
-
-        // Agora computamos a matriz de Projeção.
-        glm::mat4 projection;
-
-        // Note que, no sistema de coordenadas da câmera, os planos near e far
-        // estão no sentido negativo! Veja slides 176-204 do documento Aula_09_Projecoes.pdf.
-        float nearplane = -0.1f;  // Posição do "near plane"
-        float farplane  = -10.0f; // Posição do "far plane"
-
-        if (g_UsePerspectiveProjection)
-        {
-            // Projeção Perspectiva.
-            // Para definição do field of view (FOV), veja slides 205-215 do documento Aula_09_Projecoes.pdf.
-            float field_of_view = 3.141592 / 3.0f;
-            projection = Matrix_Perspective(field_of_view, g_ScreenRatio, nearplane, farplane);
-        }
-        else
-        {
-            // Projeção Ortográfica.
-            // Para definição dos valores l, r, b, t ("left", "right", "bottom", "top"),
-            // PARA PROJEÇÃO ORTOGRÁFICA veja slides 219-224 do documento Aula_09_Projecoes.pdf.
-            // Para simular um "zoom" ortográfico, computamos o valor de "t"
-            // utilizando a variável g_CameraDistance.
-            float t = 1.5f*g_CameraDistance/2.5f;
-            float b = -t;
-            float r = t*g_ScreenRatio;
-            float l = -r;
-            projection = Matrix_Orthographic(l, r, b, t, nearplane, farplane);
-        }
-
         glm::mat4 model = Matrix_Identity(); // Transformação identidade de modelagem
 
-        // Enviamos as matrizes "view" e "projection" para a placa de vídeo
-        // (GPU). Veja o arquivo "shader_vertex.glsl", onde estas são
-        // efetivamente aplicadas em todos os pontos.
-        glUniformMatrix4fv(g_view_uniform       , 1 , GL_FALSE , glm::value_ptr(view));
-        glUniformMatrix4fv(g_projection_uniform , 1 , GL_FALSE , glm::value_ptr(projection));
 
         #define SPHERE 0
         #define BUNNY  1
         #define PLANE  2
+
+
+        //Chama funções auxiliares para desenhar os objetos
+        //DrawPlanes();
+        //DrawBunny();
 
         // Desenhamos o modelo da esfera
         model = Matrix_Translate(-1.0f,0.0f,0.0f);
@@ -442,6 +383,16 @@ int main(int argc, char* argv[])
         DrawVirtualObject("the_plane");
 
 
+        //Atualiza os valores da câmera
+        CameraMovement(look_at, &temporary_bunny, &camera_position_c, &camera_view_vector, camera_up_vector, delta_t);
+
+        //Atualiza posição do carro
+        CarMovement(look_at, &temporary_bunny, &temporary_bunny_collision, &camera_position_c, &camera_view_vector, camera_up_vector, delta_t );
+
+        // Salva número de segundos que passou para fazer o frame refresh
+        old_seconds = (float)glfwGetTime();
+
+        CameraProjection(camera_position_c, camera_view_vector, camera_up_vector);
 
         TextRendering_ShowFramesPerSecond(window);
         glfwSwapBuffers(window);
@@ -453,6 +404,122 @@ int main(int argc, char* argv[])
 
     // Fim do programa
     return 0;
+}
+
+void CameraProjection(glm::vec4 camera_position_c, glm::vec4 camera_view_vector, glm::vec4 camera_up_vector) {
+    glm::mat4 view = Matrix_Camera_View(camera_position_c, camera_view_vector, camera_up_vector);
+    glm::mat4 projection;
+    float nearplane = -0.1f;
+    float farplane = -40.0f;
+
+    if (g_UsePerspectiveProjection)
+    {
+        float field_of_view = MY_PIE / 3.0f;
+        projection = Matrix_Perspective(field_of_view, g_ScreenRatio, nearplane, farplane);
+    }
+    else
+    {
+        float t = 1.5f * g_CameraDistance / 2.5f;
+        float b = -t;
+        float r = t * g_ScreenRatio;
+        float l = -r;
+        projection = Matrix_Orthographic(l, r, b, t, nearplane, farplane);
+    }
+    glUniformMatrix4fv(g_view_uniform, 1, GL_FALSE, glm::value_ptr(view));
+    glUniformMatrix4fv(g_projection_uniform, 1, GL_FALSE, glm::value_ptr(projection));
+}
+
+//Atualiza os valores da camera / realiza a troca entre free e look-at
+void CameraMovement(bool look_at, Car* car, glm::vec4* camera_position_c, glm::vec4* camera_view_vector, glm::vec4 camera_up_vector, float delta_t) {
+
+    // Atualizamos os vetores da câmera quando seu tipo muda
+    if (switch_camera_type) {
+        if (look_at) {
+            // Quando trocou de câmera livre para câmera look_at
+            car->position = *camera_position_c;
+        }
+        else
+        {
+            // Quando trocou de câmera look_at para câmera livre
+            *camera_position_c = car->position;
+        }
+        g_CameraTheta += MY_PIE;
+        g_CameraPhi = -g_CameraPhi;
+        switch_camera_type = false;
+    }
+
+    // Computamos a posição da câmera utilizando coordenadas esféricas.  As
+    // variáveis g_CameraDistance, g_CameraPhi, e g_CameraTheta são
+    // controladas pelo mouse do usuário. Veja as funções CursorPosCallback()
+    // e ScrollCallback().
+    float r = g_CameraDistance;
+    float y = r * sin(g_CameraPhi);
+    float z = r * cos(g_CameraPhi) * cos(g_CameraTheta);
+    float x = r * cos(g_CameraPhi) * sin(g_CameraTheta);
+
+    if (look_at) {
+        (*camera_position_c) = car->position + glm::vec4(x, y, z, 0.0f);
+        (*camera_view_vector) = car->position - *camera_position_c;
+    }
+    else {
+        (*camera_view_vector) = glm::vec4(x, y, z, 0.0f);
+        *camera_position_c = car->position;
+    }
+
+}
+
+
+//Calcula a proxima posição do personagem
+void CarMovement(bool look_at, Car* car, Box* car_collision, glm::vec4* camera_position_c, glm::vec4* camera_view_vector, glm::vec4 camera_up_vector, float delta_t) {
+
+    car->direction = glm::vec4 (0.0f, 0.0f, 0.0f, 0.0f);
+
+    //Verifica a direção do movimento
+    if (front) {
+        glm::vec4 w = (*camera_view_vector);
+        w.y = 0;
+        w = w / norm(w);
+        car->direction += w;
+    }
+
+    if (back) {
+        glm::vec4 w = -(*camera_view_vector);
+        w.y = 0;
+        w = w / norm(w);
+        car->direction += w;
+    }
+
+    if (left) {
+        glm::vec4 u = crossproduct(camera_up_vector, (*camera_view_vector));
+        u.y = 0;
+        u = u / norm(u);
+        car->direction += u;
+    }
+
+    if (right) {
+        glm::vec4 u = crossproduct(camera_up_vector, -(*camera_view_vector));
+        u.y = 0;
+        u = u / norm(u);
+        car->direction += u;
+    }
+
+
+    car_collision->position = car->position;
+
+    //normaliza a direção
+    if (car->direction != glm::vec4 (0.0f, 0.0f, 0.0f, 0.0f)){
+        car->direction = normalize(car->direction);
+    }
+    else
+        car->velocity = 0;
+
+    if (car->velocity<3)
+        car->velocity+=delta_t;
+
+    car->direction = car->direction * car->velocity * delta_t;
+    car->direction.y = car->gravity  * delta_t;
+
+
 }
 
 // Função que desenha um objeto armazenado em g_VirtualScene. Veja definição
@@ -981,8 +1048,14 @@ void CursorPosCallback(GLFWwindow* window, double xpos, double ypos)
         float dy = ypos - g_LastCursorPosY;
 
         // Atualizamos parâmetros da câmera com os deslocamentos
-        g_CameraTheta -= 0.01f*dx;
-        g_CameraPhi   += 0.01f*dy;
+        if (look_at) {
+            g_CameraTheta -= 0.01f * dx;
+            g_CameraPhi += 0.01f * dy;
+        }
+        else {
+            g_CameraTheta -= 0.01f * dx;
+            g_CameraPhi -= 0.01f * dy;
+        }
 
         // Em coordenadas esféricas, o ângulo phi deve ficar entre -pi/2 e +pi/2.
         float phimax = 3.141592f/2;
@@ -993,38 +1066,6 @@ void CursorPosCallback(GLFWwindow* window, double xpos, double ypos)
 
         if (g_CameraPhi < phimin)
             g_CameraPhi = phimin;
-
-        // Atualizamos as variáveis globais para armazenar a posição atual do
-        // cursor como sendo a última posição conhecida do cursor.
-        g_LastCursorPosX = xpos;
-        g_LastCursorPosY = ypos;
-    }
-
-    if (g_RightMouseButtonPressed)
-    {
-        // Deslocamento do cursor do mouse em x e y de coordenadas de tela!
-        float dx = xpos - g_LastCursorPosX;
-        float dy = ypos - g_LastCursorPosY;
-
-        // Atualizamos parâmetros da antebraço com os deslocamentos
-        g_ForearmAngleZ -= 0.01f*dx;
-        g_ForearmAngleX += 0.01f*dy;
-
-        // Atualizamos as variáveis globais para armazenar a posição atual do
-        // cursor como sendo a última posição conhecida do cursor.
-        g_LastCursorPosX = xpos;
-        g_LastCursorPosY = ypos;
-    }
-
-    if (g_MiddleMouseButtonPressed)
-    {
-        // Deslocamento do cursor do mouse em x e y de coordenadas de tela!
-        float dx = xpos - g_LastCursorPosX;
-        float dy = ypos - g_LastCursorPosY;
-
-        // Atualizamos parâmetros da antebraço com os deslocamentos
-        g_TorsoPositionX += 0.01f*dx;
-        g_TorsoPositionY -= 0.01f*dy;
 
         // Atualizamos as variáveis globais para armazenar a posição atual do
         // cursor como sendo a última posição conhecida do cursor.
@@ -1103,6 +1144,14 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
         else if (action == GLFW_RELEASE) {
             // A solto (câmera deve parar de se movimentar)
             left = false;
+        }
+    }
+
+    if (key == GLFW_KEY_E) {
+        if (action == GLFW_PRESS) {
+            // E pressionado
+            look_at = !look_at;
+            switch_camera_type = true;
         }
     }
 
