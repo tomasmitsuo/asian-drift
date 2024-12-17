@@ -296,7 +296,7 @@ int main(int argc, char* argv[])
     ComputeNormals(&spheremodel);
     BuildTrianglesAndAddToVirtualScene(&spheremodel);
 
-    ObjModel bunnymodel("../../data/bunny.obj");
+    ObjModel bunnymodel("../../data/Skyline_R32.obj");
     ComputeNormals(&bunnymodel);
     BuildTrianglesAndAddToVirtualScene(&bunnymodel);
 
@@ -384,6 +384,16 @@ int main(int argc, char* argv[])
 
         //Atualiza os valores da câmera
         CameraMovement(look_at, &temporary_bunny, &camera_position_c, &camera_view_vector, camera_up_vector, delta_t);
+        
+        // PARA SIMULAR O ATRITO DO CARRO COM O CHÃO
+        if (temporary_bunny.acceleration > 0)
+        {
+            temporary_bunny.acceleration -= 0.06;
+        }
+        if (temporary_bunny.acceleration < 0)
+        {
+            temporary_bunny.acceleration = 0;
+        }
 
         //Atualiza posição do carro
         CarMovement(look_at, &temporary_bunny, &temporary_bunny_collision, &camera_position_c, &camera_view_vector, camera_up_vector, delta_t );
@@ -431,7 +441,7 @@ void DrawCar(glm::vec4 camera_view_vector) {
             Matrix_Scale(0.5f, 0.5f, 0.5f);
         glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
         glUniform1i(g_object_id_uniform, BUNNY);
-        DrawVirtualObject("the_bunny");
+        DrawVirtualObject("Skyline_R32");
     }
 
 }
@@ -510,6 +520,7 @@ void CarMovement(bool look_at, Car* car, Box* car_collision, glm::vec4* camera_p
         w.y = 0;
         w = w / norm(w);
         car->direction += w;
+        car->acceleration += 1.0;
     }
 
     if (back) {
@@ -517,6 +528,7 @@ void CarMovement(bool look_at, Car* car, Box* car_collision, glm::vec4* camera_p
         w.y = 0;
         w = w / norm(w);
         car->direction += w;
+        car->acceleration += 1.0;
     }
 
     if (left) {
@@ -545,9 +557,9 @@ void CarMovement(bool look_at, Car* car, Box* car_collision, glm::vec4* camera_p
         car->velocity = 0;
 
     if (car->velocity<3)
-        car->velocity+=delta_t;
+        car->velocity += delta_t;
 
-    car->direction = car->direction * car->velocity * delta_t;
+    car->direction = car->direction * car->velocity *car->acceleration * delta_t;
     //car->direction.y = car->gravity  * delta_t;
 
     car->position += car->direction;
