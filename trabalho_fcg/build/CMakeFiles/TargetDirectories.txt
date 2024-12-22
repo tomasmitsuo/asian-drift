@@ -1,4 +1,4 @@
-/home/tomas-ueda/Área de trabalho/projetos/asian-drift/trabalho_fcg/build/CMakeFiles/main.dir
-/home/tomas-ueda/Área de trabalho/projetos/asian-drift/trabalho_fcg/build/CMakeFiles/run.dir
-/home/tomas-ueda/Área de trabalho/projetos/asian-drift/trabalho_fcg/build/CMakeFiles/edit_cache.dir
-/home/tomas-ueda/Área de trabalho/projetos/asian-drift/trabalho_fcg/build/CMakeFiles/rebuild_cache.dir
+/mnt/c/Users/Pichau/Documents/asian-drift/trabalho_fcg/build/CMakeFiles/main.dir
+/mnt/c/Users/Pichau/Documents/asian-drift/trabalho_fcg/build/CMakeFiles/run.dir
+/mnt/c/Users/Pichau/Documents/asian-drift/trabalho_fcg/build/CMakeFiles/edit_cache.dir
+/mnt/c/Users/Pichau/Documents/asian-drift/trabalho_fcg/build/CMakeFiles/rebuild_cache.dir

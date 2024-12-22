@@ -41,7 +41,7 @@
 				{
 					"directoryIndex" : 0,
 					"id" : "main::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-main-Debug-2bf05084c0ee60a6fb2b.json",
+					"jsonFile" : "target-main-Debug-ff373332469f37774fda.json",
 					"name" : "main",
 					"projectIndex" : 0
 				},
@@ -58,12 +58,12 @@
 	"kind" : "codemodel",
 	"paths" : 
 	{
-		"build" : "/home/tomas-ueda/\u00c1rea de trabalho/projetos/asian-drift/trabalho_fcg/build",
-		"source" : "/home/tomas-ueda/\u00c1rea de trabalho/projetos/asian-drift/trabalho_fcg"
+		"build" : "/mnt/c/Users/Pichau/Documents/asian-drift/trabalho_fcg/build",
+		"source" : "/mnt/c/Users/Pichau/Documents/asian-drift/trabalho_fcg"
 	},
 	"version" : 
 	{
 		"major" : 2,
-		"minor" : 6
+		"minor" : 3
 	}
 }

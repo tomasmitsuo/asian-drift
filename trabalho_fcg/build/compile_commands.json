@@ -1,20 +1,17 @@
 [
 {
-  "directory": "/home/tomas-ueda/Área de trabalho/projetos/asian-drift/trabalho_fcg/build",
-  "command": "/usr/bin/g++  -I\"/home/tomas-ueda/Área de trabalho/projetos/asian-drift/trabalho_fcg/include\" -g -std=c++11 -Wall -Wno-unused-function -o CMakeFiles/main.dir/src/main.cpp.o -c \"/home/tomas-ueda/Área de trabalho/projetos/asian-drift/trabalho_fcg/src/main.cpp\"",
-  "file": "/home/tomas-ueda/Área de trabalho/projetos/asian-drift/trabalho_fcg/src/main.cpp",
-  "output": "CMakeFiles/main.dir/src/main.cpp.o"
+  "directory": "/mnt/c/Users/Pichau/Documents/asian-drift/trabalho_fcg/build",
+  "command": "/usr/bin/g++  -I/mnt/c/Users/Pichau/Documents/asian-drift/trabalho_fcg/include -g -Wall -Wno-unused-function -std=c++11 -o CMakeFiles/main.dir/src/main.cpp.o -c /mnt/c/Users/Pichau/Documents/asian-drift/trabalho_fcg/src/main.cpp",
+  "file": "/mnt/c/Users/Pichau/Documents/asian-drift/trabalho_fcg/src/main.cpp"
 },
 {
-  "directory": "/home/tomas-ueda/Área de trabalho/projetos/asian-drift/trabalho_fcg/build",
-  "command": "/usr/bin/g++  -I\"/home/tomas-ueda/Área de trabalho/projetos/asian-drift/trabalho_fcg/include\" -g -std=c++11 -Wall -Wno-unused-function -o CMakeFiles/main.dir/src/tiny_obj_loader.cpp.o -c \"/home/tomas-ueda/Área de trabalho/projetos/asian-drift/trabalho_fcg/src/tiny_obj_loader.cpp\"",
-  "file": "/home/tomas-ueda/Área de trabalho/projetos/asian-drift/trabalho_fcg/src/tiny_obj_loader.cpp",
-  "output": "CMakeFiles/main.dir/src/tiny_obj_loader.cpp.o"
+  "directory": "/mnt/c/Users/Pichau/Documents/asian-drift/trabalho_fcg/build",
+  "command": "/usr/bin/g++  -I/mnt/c/Users/Pichau/Documents/asian-drift/trabalho_fcg/include -g -Wall -Wno-unused-function -std=c++11 -o CMakeFiles/main.dir/src/tiny_obj_loader.cpp.o -c /mnt/c/Users/Pichau/Documents/asian-drift/trabalho_fcg/src/tiny_obj_loader.cpp",
+  "file": "/mnt/c/Users/Pichau/Documents/asian-drift/trabalho_fcg/src/tiny_obj_loader.cpp"
 },
 {
-  "directory": "/home/tomas-ueda/Área de trabalho/projetos/asian-drift/trabalho_fcg/build",
-  "command": "/usr/bin/gcc  -I\"/home/tomas-ueda/Área de trabalho/projetos/asian-drift/trabalho_fcg/include\" -g -Wall -Wno-unused-function -o CMakeFiles/main.dir/src/glad.c.o -c \"/home/tomas-ueda/Área de trabalho/projetos/asian-drift/trabalho_fcg/src/glad.c\"",
-  "file": "/home/tomas-ueda/Área de trabalho/projetos/asian-drift/trabalho_fcg/src/glad.c",
-  "output": "CMakeFiles/main.dir/src/glad.c.o"
+  "directory": "/mnt/c/Users/Pichau/Documents/asian-drift/trabalho_fcg/build",
+  "command": "/usr/bin/gcc  -I/mnt/c/Users/Pichau/Documents/asian-drift/trabalho_fcg/include -g -Wall -Wno-unused-function -o CMakeFiles/main.dir/src/glad.c.o -c /mnt/c/Users/Pichau/Documents/asian-drift/trabalho_fcg/src/glad.c",
+  "file": "/mnt/c/Users/Pichau/Documents/asian-drift/trabalho_fcg/src/glad.c"
 }
 ]
