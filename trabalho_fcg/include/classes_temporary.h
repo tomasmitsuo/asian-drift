@@ -5,11 +5,11 @@
 struct Car
 {
     glm::vec4   position;
-    glm::vec4   direction = glm::vec4 (1.0f, 0.0f, 0.0f, 0.0f);
+    glm::vec4   direction = glm::vec4 (1.0f, 0.0f, 0.0f, 0.0f); // para onde o carro está apontando
     float       gravity = -4.0;
     float       velocity = 1.0;
     float       acceleration = 0.0f;
-    float       steering_angle = 0.0f;
+    float       steering_angle = 0.0f; // é o que altera o vetor direction para mudar a direção do carro.
 };
 
 struct Box

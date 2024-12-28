@@ -2,7 +2,7 @@
 	"artifacts" : 
 	[
 		{
-			"path" : "/home/kenji/github/asian-drift/trabalho_fcg/bin/Linux/main"
+			"path" : "/home/tomas-ueda/\u00c1rea de trabalho/projetos/asian-drift/trabalho_fcg/bin/Linux/main"
 		}
 	],
 	"backtrace" : 1,
@@ -56,7 +56,7 @@
 			"compileCommandFragments" : 
 			[
 				{
-					"fragment" : "-g"
+					"fragment" : "-g -std=c++11"
 				},
 				{
 					"backtrace" : 3,
@@ -65,16 +65,13 @@
 				{
 					"backtrace" : 3,
 					"fragment" : "-Wno-unused-function"
-				},
-				{
-					"fragment" : "-std=c++11"
 				}
 			],
 			"includes" : 
 			[
 				{
 					"backtrace" : 4,
-					"path" : "/home/kenji/github/asian-drift/trabalho_fcg/include"
+					"path" : "/home/tomas-ueda/\u00c1rea de trabalho/projetos/asian-drift/trabalho_fcg/include"
 				}
 			],
 			"language" : "CXX",
@@ -111,7 +108,7 @@
 			[
 				{
 					"backtrace" : 4,
-					"path" : "/home/kenji/github/asian-drift/trabalho_fcg/include"
+					"path" : "/home/tomas-ueda/\u00c1rea de trabalho/projetos/asian-drift/trabalho_fcg/include"
 				}
 			],
 			"language" : "C",
@@ -145,12 +142,22 @@
 			},
 			{
 				"backtrace" : 2,
-				"fragment" : "/home/kenji/github/asian-drift/trabalho_fcg/lib-linux/libglfw3.a",
+				"fragment" : "\"/home/tomas-ueda/\u00c1rea de trabalho/projetos/asian-drift/trabalho_fcg/lib-linux/libglfw3.a\"",
 				"role" : "libraries"
 			},
 			{
 				"backtrace" : 2,
 				"fragment" : "/usr/lib/x86_64-linux-gnu/libGL.so",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/usr/lib/x86_64-linux-gnu/libSM.so",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/usr/lib/x86_64-linux-gnu/libICE.so",
 				"role" : "libraries"
 			},
 			{

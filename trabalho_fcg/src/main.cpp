@@ -115,7 +115,7 @@ void PopMatrix(glm::mat4& M);
 // Declaração de várias funções utilizadas em main().  Essas estão definidas
 // logo após a definição de main() neste arquivo.
 void BuildTrianglesAndAddToVirtualScene(ObjModel*); // Constrói representação de um ObjModel como malha de triângulos para renderização
-void ComputeNormals(ObjModel* model); // Computa normais de um ObjModel, caso não existam.
+void ComputeNormals(ObjModel* model, bool inverte); // Computa normais de um ObjModel, caso não existam.
 void LoadShadersFromFiles(); // Carrega os shaders de vértice e fragmento, criando um programa de GPU
 void DrawVirtualObject(const char* object_name); // Desenha um objeto armazenado em g_VirtualScene
 GLuint LoadShader_Vertex(const char* filename);   // Carrega um vertex shader
@@ -296,15 +296,15 @@ int main(int argc, char* argv[])
 
     // Construímos a representação de objetos geométricos através de malhas de triângulos
     ObjModel spheremodel("../../data/sphere.obj");
-    ComputeNormals(&spheremodel);
+    ComputeNormals(&spheremodel, true);
     BuildTrianglesAndAddToVirtualScene(&spheremodel);
 
     ObjModel bunnymodel("../../data/Skyline_R32.obj");
-    ComputeNormals(&bunnymodel);
+    ComputeNormals(&bunnymodel, false);
     BuildTrianglesAndAddToVirtualScene(&bunnymodel);
 
     ObjModel planemodel("../../data/plane.obj");
-    ComputeNormals(&planemodel);
+    ComputeNormals(&planemodel, false);
     BuildTrianglesAndAddToVirtualScene(&planemodel);
 
     /*
@@ -388,7 +388,6 @@ int main(int argc, char* argv[])
         //Atualiza os valores da câmera
         CameraMovement(look_at, &temporary_bunny, &camera_position_c, &camera_view_vector, camera_up_vector, delta_t);
     
-
         //Atualiza posição do carro
         CarMovement(look_at, &temporary_bunny, &temporary_bunny_collision, &camera_position_c, &camera_view_vector, camera_up_vector, delta_t );
 
@@ -403,6 +402,7 @@ int main(int argc, char* argv[])
         printf("Acceleration: %.2f\n", temporary_bunny.acceleration);
         printf("Camera Position: (%.2f, %.2f, %.2f)\n", camera_position_c.x, camera_position_c.y, camera_position_c.z);
         printf("angle: %.2f\n", temporary_bunny.steering_angle);
+        printf("\n");
 
         glBindVertexArray(0);
         TextRendering_ShowFramesPerSecond(window);
@@ -421,7 +421,7 @@ int main(int argc, char* argv[])
 void DrawCar(glm::vec4 camera_view_vector, Car *car) {
     if (look_at) {
         glm::mat4 model = Matrix_Identity();
-        glm::vec4 w = (car->direction);
+        glm::vec4 w = (car->direction); // Desenha o carro na direção do vetor car->direction!
         w.y = 0;
         w = normalize(w);
         glm::vec4 normal = glm::vec4(0.0, 0.0, 1.0, 0.0);
@@ -494,22 +494,26 @@ void CameraMovement(bool look_at, Car* car, glm::vec4* camera_position_c, glm::v
     float z = r * cos(g_CameraPhi) * cos(g_CameraTheta);
     float x = r * cos(g_CameraPhi) * sin(g_CameraTheta);
 
-    if (locked)
-    {   
-        (*camera_position_c) = car->position - glm::vec4(3.0f,-0.5f,-0.15f,0.0f);
-        (*camera_view_vector) = car->direction;
-    }
-    else if (look_back)
+    if (look_back) // Câmera traseira
     {
         (*camera_position_c) = car->position + car->direction;
         (*camera_view_vector) = car->position - *camera_position_c;
     }
-    else if (look_at)
+    else if (locked) // Câmera presa
+    {   
+    glm::vec4 normalized_direction = glm::normalize(car->direction);
+    glm::vec4 camera_offset = -normalized_direction * 3.0f;
+    camera_offset.y = 0.5f;
+    (*camera_position_c) = car->position + camera_offset;
+    (*camera_view_vector) = glm::normalize(car->position + car->direction - *camera_position_c);
+    }
+    else if (look_at) // Câmera look-at
     {
         (*camera_position_c) = car->position + glm::vec4(x, y, z, 0.0f);
         (*camera_view_vector) = car->position - *camera_position_c;
     }
-    else {
+    else // Câmera livre
+    {
         (*camera_view_vector) = glm::vec4(x, y, z, 0.0f);
         *camera_position_c = car->position;
     }
@@ -520,81 +524,69 @@ void CameraMovement(bool look_at, Car* car, glm::vec4* camera_position_c, glm::v
 
 void CarMovement(bool look_at, Car* car, Box* car_collision, glm::vec4* camera_position_c, glm::vec4* camera_view_vector, glm::vec4 camera_up_vector, float delta_t) {
 
-   // float turn = 0.05f;
-    
     glm::vec4 w = car->direction;
-   
     w.y = 0;
     w = normalize(w);
 
-  //  glm::vec4 u = crossproduct(camera_up_vector, w);
- //   u.y = 0;
-   // u = normalize(u);
-
-    // ACELERAÇÃO PARA FRENTE  E PARA TRÁS
+    // ACELERAÇÃO PARA FRENTE E PARA TRÁS
     if (front)
     {
-        car->acceleration = glm::min(car->acceleration + 0.05f, 100.0f);
+        car->acceleration = glm::min(car->acceleration + 0.05f, 80.0f);
         car->direction = w;
     }
     if (back) 
     {
-        car->acceleration = glm::max(car->acceleration - 0.05f, -100.0f);
+        car->acceleration = glm::max(car->acceleration - 0.05f, -80.0f);
         car->direction = w;
     }
 
     // MOVIMENTAÇÃO DO VOLANTE
-
-    // Tem que alterar o vetor de direção do carro XZ.
     if (left) 
     {
-        if (car->velocity > 5.0)
+        if (car->velocity > 1.0)
         {
-            car->steering_angle = glm::clamp(car->steering_angle + 0.00001f, -glm::radians(30.0f),glm::radians(30.0f));
-            g_CameraTheta += car->steering_angle;
+            car->steering_angle = glm::clamp(car->steering_angle + 0.0005f, -glm::radians(15.0f), glm::radians(15.0f));
         }
-        if (car->velocity < -5.0)
+        else if (car->velocity < -1.0)
         {
-            car->steering_angle = glm::clamp(car->steering_angle - 0.00001f, -glm::radians(30.0f),glm::radians(30.0f));
-            g_CameraTheta += car->steering_angle;
+            car->steering_angle = glm::clamp(car->steering_angle - 0.0005f, -glm::radians(15.0f), glm::radians(15.0f));
         }
     }
     if (right)
     {
-        if (car->velocity > 5.0)
+        if (car->velocity > 1.0)
         {
-            car->steering_angle = glm::clamp(car->steering_angle - 0.00001f, -glm::radians(30.0f),glm::radians(30.0f));
-            g_CameraTheta += car->steering_angle;
+            car->steering_angle = glm::clamp(car->steering_angle - 0.0005f, -glm::radians(15.0f), glm::radians(15.0f));
         }
-        if (car->velocity < -5.0)
+        else if (car->velocity < -1.0)
         {
-            car->steering_angle = glm::clamp(car->steering_angle + 0.00001f, -glm::radians(30.0f),glm::radians(30.0f));
-            g_CameraTheta += car->steering_angle;
+            car->steering_angle = glm::clamp(car->steering_angle + 0.0005f, -glm::radians(15.0f), glm::radians(15.0f));
         }
-    }   
+    }
+
+    // Atualizando a direção do carro com base no ângulo de direção
+    float angle = car->steering_angle;
+    glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), angle, glm::vec3(0.0f, 1.0f, 0.0f)); // Ver como esta função funciona
+    glm::vec4 new_direction = rotation * car->direction;
+    car->direction = glm::normalize(new_direction);
 
     // FREIO DO CARRO
     if (car_break)
     {
-        if(car->velocity > 0)
-        {
-            car->acceleration = glm::max(car->acceleration - 1.0f, -1.0f);
-        }
-        else if (car->velocity < 0)
-        {
-            car->acceleration = glm::min(car->acceleration + 1.0f, 1.0f);
-        }
+        float brake_force = glm::sign(car->velocity) * 2.0f;
+        car->acceleration = glm::clamp(car->acceleration - brake_force, -5.0f, 5.0f);
     }
 
     // SIMULAÇÃO DA RESISTÊNCIA DO VOLANTE
-    if ((!left && !right) && (car->steering_angle > 0)) {
-        car->steering_angle = glm::max(car->steering_angle - 0.1f, 0.0f);
+    float resistance = glm::clamp(0.1f * (1.0f + car->velocity / 100.0f), 0.1f, 0.5f);
+    if ((!left && !right) && car->steering_angle > 0) {
+        car->steering_angle = glm::max(car->steering_angle - resistance, 0.0f);
     }
-    if ((!left && !right) && (car->steering_angle < 0)) {
-        car->steering_angle = glm::min(car->steering_angle + 0.1f, 0.0f);
+    if ((!left && !right) && car->steering_angle < 0) {
+        car->steering_angle = glm::min(car->steering_angle + resistance, 0.0f);
     }
 
-    // SIMULAÇÃO DO RESISTÊNCIA PARA A ACELERAÇÃO
+    // SIMULAÇÃO DA RESISTÊNCIA PARA A ACELERAÇÃO
     if ((!front && !back) && (car->acceleration > 0)) {
         car->acceleration = glm::max(car->acceleration - 0.1f, 0.0f);
     }
@@ -602,12 +594,19 @@ void CarMovement(bool look_at, Car* car, Box* car_collision, glm::vec4* camera_p
         car->acceleration = glm::min(car->acceleration + 0.1f, 0.0f);
     }
 
-    
+    // Atualização da velocidade com resistência ao ar
+    float drag = 0.02f * car->velocity * delta_t; // Resistência proporcional à velocidade
     car->velocity += car->acceleration * delta_t;
-    car->velocity = glm::clamp(car->velocity * 0.998f, -300.0f, 300.0f); // DESACELERAÇÃO NATURAL
+    car->velocity -= drag;
+    car->velocity = glm::clamp(car->velocity, -300.0f, 300.0f);
+
+    // Atualização da posição do carro
     car->position += car->direction * car->velocity * delta_t;
+
+    // Atualização da posição da colisão
     car_collision->position = car->position;
 }
+
 
 // Função que desenha um objeto armazenado em g_VirtualScene. Veja definição
 // dos objetos na função BuildTrianglesAndAddToVirtualScene().
@@ -699,7 +698,7 @@ void PopMatrix(glm::mat4& M)
 
 // Função que computa as normais de um ObjModel, caso elas não tenham sido
 // especificadas dentro do arquivo ".obj"
-void ComputeNormals(ObjModel* model)
+void ComputeNormals(ObjModel* model, bool inverte)
 {
     if ( !model->attrib.normals.empty() )
         return;
@@ -738,7 +737,22 @@ void ComputeNormals(ObjModel* model)
 
             // PREENCHA AQUI o cálculo da normal de um triângulo cujos vértices
             // estão nos pontos "a", "b", e "c", definidos no sentido anti-horário.
-            const glm::vec4  n = crossproduct((b - a), (c - a));
+            glm::vec4 vec1;
+            glm::vec4 vec2;
+
+            if (!inverte)
+            {
+                vec1 = b-a;
+                vec2 = c-a;
+            }
+            else
+            {
+                vec1 = c-a;
+                vec2 = b-a;
+            }
+
+            const glm::vec4  n = crossproduct(vec1,vec2);
+
 
             for (size_t vertex = 0; vertex < 3; ++vertex)
             {
