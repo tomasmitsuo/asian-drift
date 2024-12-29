@@ -547,11 +547,6 @@ void CarMovement(bool look_at, Car* car, Box* car_collision, glm::vec4* camera_p
         {
             car->steering_angle = glm::clamp(car->steering_angle - 0.0005f, -glm::radians(15.0f), glm::radians(15.0f));
         }
-        // Atualizando a direção do carro com base no ângulo de direção
-        float angle = car->steering_angle;
-        glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), angle, glm::vec3(0.0f, 1.0f, 0.0f)); // Ver como esta função funciona
-        glm::vec4 new_direction = rotation * car->direction;
-        car->direction = normalize(new_direction);
     }
     if (right)
     {
@@ -565,12 +560,12 @@ void CarMovement(bool look_at, Car* car, Box* car_collision, glm::vec4* camera_p
         {
             car->steering_angle = glm::clamp(car->steering_angle + 0.0005f, -glm::radians(15.0f), glm::radians(15.0f));
         }
-        // Atualizando a direção do carro com base no ângulo de direção
-        float angle = car->steering_angle;
-        glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), angle, glm::vec3(0.0f, 1.0f, 0.0f)); // Ver como esta função funciona
-        glm::vec4 new_direction = rotation * car->direction;
-        car->direction = normalize(new_direction);
     }
+    // Atualizando a direção do carro com base no ângulo de direção
+    float angle = car->steering_angle;
+    glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), angle, glm::vec3(0.0f, 1.0f, 0.0f)); // Ver como esta função funciona
+    glm::vec4 new_direction = rotation * car->direction;
+    car->direction = normalize(new_direction);
 
 
 
@@ -578,7 +573,7 @@ void CarMovement(bool look_at, Car* car, Box* car_collision, glm::vec4* camera_p
     if (car_break)
     {
         float brake_force = glm::sign(car->velocity) * 5.0f;
-        car->acceleration = glm::clamp(car->acceleration - brake_force, -5.0f, 5.0f);
+        car->acceleration = glm::clamp(car->acceleration - brake_force, -8.0f, 8.0f);
     }
 
     // SIMULAÇÃO DA RESISTÊNCIA DO VOLANTE
@@ -598,23 +593,31 @@ void CarMovement(bool look_at, Car* car, Box* car_collision, glm::vec4* camera_p
         car->acceleration = glm::min(car->acceleration + 0.1f, 0.0f);
     }
 
-
     // Atualização da velocidade com resistência ao ar
     float drag = 0.02f * car->velocity * delta_t; // Resistência proporcional à velocidade
-    car->velocity += car->acceleration * delta_t;
     car->velocity -= drag;
+    car->velocity += car->acceleration * delta_t;
     car->velocity = glm::clamp(car->velocity, -150.0f, 50.0f);
 
 
     // Atualização da posição da colisão
     car_collision->position = car->position;
 
+    //normaliza a direção
+    if (car->direction != glm::vec4 (0.0f, 0.0f, 0.0f, 0.0f)){
+        car->direction = normalize(car->direction);
+    }
+    else
+        car->velocity = 0;
 
 
+    // Update the car's position using velocity and direction
+    glm::vec4 movement = car->direction * car->velocity * delta_t;
+    movement.y = car->gravity * delta_t; // Apply gravity to the movement, not the direction
 
-    car->direction = car->direction * car->velocity * delta_t;
-    car->direction.y = car->gravity  * delta_t;
-    
+    //car->direction = car->direction * car->velocity * delta_t;
+    //car->direction.y = car->gravity  * delta_t;
+
 
     //Se carro caiu do mapa
     if (car->position.y <= -10.0){
@@ -625,11 +628,13 @@ void CarMovement(bool look_at, Car* car, Box* car_collision, glm::vec4* camera_p
 
     //Checa colisões com os planos
     for (Box plane : planes)
-        car->direction = CubePlaneCollision(*car_collision, car->direction, plane);
-
+        movement = CubePlaneCollision(*car_collision, movement, plane);
 
     // Atualização da posição do carro
-    car->position += car->direction;
+    car->position += movement;
+
+    // Update the car's position
+    //car->position += movement;
 
 
 }
