@@ -6,7 +6,7 @@
 		},
 		{
 			"isGenerated" : true,
-			"path" : "build/CMakeFiles/3.22.1/CMakeSystem.cmake"
+			"path" : "/home/kenji/github/asian-drift/build/CMakeFiles/3.22.1/CMakeSystem.cmake"
 		},
 		{
 			"isCMake" : true,
@@ -15,11 +15,11 @@
 		},
 		{
 			"isGenerated" : true,
-			"path" : "build/CMakeFiles/3.22.1/CMakeCCompiler.cmake"
+			"path" : "/home/kenji/github/asian-drift/build/CMakeFiles/3.22.1/CMakeCCompiler.cmake"
 		},
 		{
 			"isGenerated" : true,
-			"path" : "build/CMakeFiles/3.22.1/CMakeCXXCompiler.cmake"
+			"path" : "/home/kenji/github/asian-drift/build/CMakeFiles/3.22.1/CMakeCXXCompiler.cmake"
 		},
 		{
 			"isCMake" : true,
@@ -200,8 +200,8 @@
 	"kind" : "cmakeFiles",
 	"paths" : 
 	{
-		"build" : "/mnt/c/Users/Pichau/Documents/asian-drift/trabalho_fcg/build",
-		"source" : "/mnt/c/Users/Pichau/Documents/asian-drift/trabalho_fcg"
+		"build" : "/home/kenji/github/asian-drift/build",
+		"source" : "/home/kenji/github/asian-drift/trabalho_fcg"
 	},
 	"version" : 
 	{

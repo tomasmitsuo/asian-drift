@@ -1,15 +1,23 @@
 #include <glm/mat4x4.hpp>
 #include <glm/vec4.hpp>
 #include <glm/gtc/type_ptr.hpp>
-//#include "car.h"
-//#include "box.h"
 #include "classes_temporary.h"
 #include "matrices.h"
 
 bool PointPlaneCollision(glm::vec4 point_a, glm::vec4 point_b, Box plane){
     glm::vec4 c = plane.position;
     glm::vec4 n = plane.direction;
-    float t = dotproduct(c-point_a,n)/dotproduct(point_b-point_a,n);
+    // Imprime os vetores que serão usados no produto escalar
+    //printf("point_a: (%f, %f, %f, %f)\n", point_a.x, point_a.y, point_a.z, point_a.w);
+    //printf("point_b: (%f, %f, %f, %f)\n", point_b.x, point_b.y, point_b.z, point_b.w);
+    //printf("plane.position (c): (%f, %f, %f, %f)\n", c.x, c.y, c.z, c.w);
+    //printf("plane.direction (n): (%f, %f, %f, %f)\n", n.x, n.y, n.z, n.w);
+
+    // Calcula o parâmetro t para a interseção da linha com o plano
+    float t = glm::dot(c - point_a, n) / glm::dot(point_b - point_a, n);
+
+    // Imprime o valor de t para verificar a interseção
+    //printf("t: %f\n", t);
     if (t>=0 && t<= 1){
         glm::vec4 p = point_a + t*(point_b-point_a);
         p = p - (plane.position - glm::vec4 (0.0f, 0.0f, 0.0f, 1.0f));

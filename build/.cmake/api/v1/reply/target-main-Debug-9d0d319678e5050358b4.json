@@ -2,7 +2,7 @@
 	"artifacts" : 
 	[
 		{
-			"path" : "/mnt/c/Users/Pichau/Documents/asian-drift/trabalho_fcg/bin/Linux/main"
+			"path" : "/home/kenji/github/asian-drift/trabalho_fcg/bin/Linux/main"
 		}
 	],
 	"backtrace" : 1,
@@ -74,7 +74,7 @@
 			[
 				{
 					"backtrace" : 4,
-					"path" : "/mnt/c/Users/Pichau/Documents/asian-drift/trabalho_fcg/include"
+					"path" : "/home/kenji/github/asian-drift/trabalho_fcg/include"
 				}
 			],
 			"language" : "CXX",
@@ -111,7 +111,7 @@
 			[
 				{
 					"backtrace" : 4,
-					"path" : "/mnt/c/Users/Pichau/Documents/asian-drift/trabalho_fcg/include"
+					"path" : "/home/kenji/github/asian-drift/trabalho_fcg/include"
 				}
 			],
 			"language" : "C",
@@ -145,27 +145,12 @@
 			},
 			{
 				"backtrace" : 2,
-				"fragment" : "../lib-linux/libglfw3.a",
+				"fragment" : "/home/kenji/github/asian-drift/trabalho_fcg/lib-linux/libglfw3.a",
 				"role" : "libraries"
 			},
 			{
 				"backtrace" : 2,
 				"fragment" : "/usr/lib/x86_64-linux-gnu/libGL.so",
-				"role" : "libraries"
-			},
-			{
-				"backtrace" : 2,
-				"fragment" : "/usr/lib/x86_64-linux-gnu/libGLU.so",
-				"role" : "libraries"
-			},
-			{
-				"backtrace" : 2,
-				"fragment" : "/usr/lib/x86_64-linux-gnu/libSM.so",
-				"role" : "libraries"
-			},
-			{
-				"backtrace" : 2,
-				"fragment" : "/usr/lib/x86_64-linux-gnu/libICE.so",
 				"role" : "libraries"
 			},
 			{

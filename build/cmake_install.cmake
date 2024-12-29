@@ -1,4 +1,4 @@
-# Install script for directory: /home/tomas-ueda/Área de trabalho/projetos/asian-drift/trabalho_fcg
+# Install script for directory: /home/kenji/github/asian-drift/trabalho_fcg
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -50,5 +50,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/home/tomas-ueda/Área de trabalho/projetos/asian-drift/build/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/home/kenji/github/asian-drift/build/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")

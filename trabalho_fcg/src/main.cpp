@@ -208,7 +208,7 @@ bool right = false;
 bool car_break = false;
 
 // Ponto de start para marcar onde ele começa
-glm::vec4 start = glm::vec4(0.0f, 0.50f, 0.0f, 1.0f);
+glm::vec4 start = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
 
 // Inicializamos nosso carro, que por enquanto é um coelho
 Car temporary_bunny;
@@ -248,7 +248,7 @@ int main(int argc, char* argv[])
 
     // Criamos uma janela do sistema operacional, com 1280 colunas e 720 linhas
     GLFWwindow* window;
-    window = glfwCreateWindow(1280, 720, "asian drift", NULL, NULL);
+    window = glfwCreateWindow(1280, 720, "Asian Drift", NULL, NULL);
     if (!window)
     {
         glfwTerminate();
@@ -307,15 +307,6 @@ int main(int argc, char* argv[])
     ComputeNormals(&planemodel, false);
     BuildTrianglesAndAddToVirtualScene(&planemodel);
 
-    /*
-    if ( argc > 1 )
-    {
-        ObjModel model(argv[1]);
-        BuildTrianglesAndAddToVirtualScene(&model);
-    }
-
-    */
-    // Construímos a representação de um triângulo
 
     // Inicializamos o código para renderização de texto.
     TextRendering_Init();
@@ -341,7 +332,7 @@ int main(int argc, char* argv[])
     float delta_t;
 
     // Caixa de colisão do carro (temporary bunny)
-    Box temporary_bunny_collision (temporary_bunny.position, glm::vec4(0.0f, 1.0f, 0.0f, 0.0f), 0.5, 0.25, 0.25, 0);
+    Box temporary_bunny_collision (temporary_bunny.position, glm::vec4(0.0f, -1.0f, 0.0f, 0.0f), 0.5, 0.25, 0.25, 1);
 
     // Ficamos em um loop infinito, renderizando, até que o usuário feche a janela
     while (!glfwWindowShouldClose(window))
@@ -365,17 +356,17 @@ int main(int argc, char* argv[])
         //Chama funções auxiliares para desenhar os objetos
         //DrawPlanes();
 
-        //desenha o coelho
+        //desenha o carro
         DrawCar(camera_view_vector, &temporary_bunny);
 
         // Desenhamos o modelo da esfera
-        model = Matrix_Scale(10000.0,100000.0,10000.0) * Matrix_Translate(-1.0f,0.0f,0.0f);
+        model = Matrix_Scale(1.0,1.0,1.0) * Matrix_Translate(-1.0f,0.0f,0.0f);
         glUniformMatrix4fv(g_model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
         glUniform1i(g_object_id_uniform, SPHERE);
         DrawVirtualObject("the_sphere");
 
         // Desenhamos o modelo do plano (chão)
-        model = Matrix_Scale(500.0, 1.0, 500.0)
+        model = Matrix_Scale(30.0, 1.0, 30.0)
             * Matrix_Translate(0.0f, -1.0f, 0.0f)
             * Matrix_Rotate_Z(g_AngleZ)
             * Matrix_Rotate_Y(g_AngleY)
@@ -527,22 +518,27 @@ void CarMovement(bool look_at, Car* car, Box* car_collision, glm::vec4* camera_p
     glm::vec4 w = car->direction;
     w.y = 0;
     w = normalize(w);
+    car->direction = w;
 
     // ACELERAÇÃO PARA FRENTE E PARA TRÁS
     if (front)
     {
-        car->acceleration = glm::min(car->acceleration + 0.05f, 80.0f);
+
+        car->acceleration = glm::min(car->acceleration + 0.05f, 40.0f);
         car->direction = w;
     }
     if (back) 
     {
-        car->acceleration = glm::max(car->acceleration - 0.05f, -80.0f);
+
+
+        car->acceleration = glm::max(car->acceleration - 0.05f, -20.0f);
         car->direction = w;
     }
 
     // MOVIMENTAÇÃO DO VOLANTE
     if (left) 
     {
+
         if (car->velocity > 1.0)
         {
             car->steering_angle = glm::clamp(car->steering_angle + 0.0005f, -glm::radians(15.0f), glm::radians(15.0f));
@@ -551,9 +547,16 @@ void CarMovement(bool look_at, Car* car, Box* car_collision, glm::vec4* camera_p
         {
             car->steering_angle = glm::clamp(car->steering_angle - 0.0005f, -glm::radians(15.0f), glm::radians(15.0f));
         }
+        // Atualizando a direção do carro com base no ângulo de direção
+        float angle = car->steering_angle;
+        glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), angle, glm::vec3(0.0f, 1.0f, 0.0f)); // Ver como esta função funciona
+        glm::vec4 new_direction = rotation * car->direction;
+        car->direction = normalize(new_direction);
     }
     if (right)
     {
+
+
         if (car->velocity > 1.0)
         {
             car->steering_angle = glm::clamp(car->steering_angle - 0.0005f, -glm::radians(15.0f), glm::radians(15.0f));
@@ -562,18 +565,19 @@ void CarMovement(bool look_at, Car* car, Box* car_collision, glm::vec4* camera_p
         {
             car->steering_angle = glm::clamp(car->steering_angle + 0.0005f, -glm::radians(15.0f), glm::radians(15.0f));
         }
+        // Atualizando a direção do carro com base no ângulo de direção
+        float angle = car->steering_angle;
+        glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), angle, glm::vec3(0.0f, 1.0f, 0.0f)); // Ver como esta função funciona
+        glm::vec4 new_direction = rotation * car->direction;
+        car->direction = normalize(new_direction);
     }
 
-    // Atualizando a direção do carro com base no ângulo de direção
-    float angle = car->steering_angle;
-    glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), angle, glm::vec3(0.0f, 1.0f, 0.0f)); // Ver como esta função funciona
-    glm::vec4 new_direction = rotation * car->direction;
-    car->direction = glm::normalize(new_direction);
+
 
     // FREIO DO CARRO
     if (car_break)
     {
-        float brake_force = glm::sign(car->velocity) * 2.0f;
+        float brake_force = glm::sign(car->velocity) * 5.0f;
         car->acceleration = glm::clamp(car->acceleration - brake_force, -5.0f, 5.0f);
     }
 
@@ -594,17 +598,40 @@ void CarMovement(bool look_at, Car* car, Box* car_collision, glm::vec4* camera_p
         car->acceleration = glm::min(car->acceleration + 0.1f, 0.0f);
     }
 
+
     // Atualização da velocidade com resistência ao ar
     float drag = 0.02f * car->velocity * delta_t; // Resistência proporcional à velocidade
     car->velocity += car->acceleration * delta_t;
     car->velocity -= drag;
-    car->velocity = glm::clamp(car->velocity, -300.0f, 300.0f);
+    car->velocity = glm::clamp(car->velocity, -150.0f, 50.0f);
 
-    // Atualização da posição do carro
-    car->position += car->direction * car->velocity * delta_t;
 
     // Atualização da posição da colisão
     car_collision->position = car->position;
+
+
+
+
+    car->direction = car->direction * car->velocity * delta_t;
+    car->direction.y = car->gravity  * delta_t;
+    
+
+    //Se carro caiu do mapa
+    if (car->position.y <= -10.0){
+        car->position = start;
+        car->velocity = 1;
+        car->acceleration = 0;
+    }
+
+    //Checa colisões com os planos
+    for (Box plane : planes)
+        car->direction = CubePlaneCollision(*car_collision, car->direction, plane);
+
+
+    // Atualização da posição do carro
+    car->position += car->direction;
+
+
 }
 
 
