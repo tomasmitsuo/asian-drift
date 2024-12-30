@@ -307,6 +307,10 @@ int main(int argc, char* argv[])
     ComputeNormals(&planemodel, false);
     BuildTrianglesAndAddToVirtualScene(&planemodel);
 
+    ObjModel racetrackmodel("../../data/race_track.obj");
+    ComputeNormals(&racetrackmodel, false);
+    BuildTrianglesAndAddToVirtualScene(&racetrackmodel);
+
 
     // Inicializamos o código para renderização de texto.
     TextRendering_Init();
@@ -351,6 +355,7 @@ int main(int argc, char* argv[])
         #define SPHERE 0
         #define BUNNY  1
         #define PLANE  2
+        #define RACETRACK 3
 
 
         //Chama funções auxiliares para desenhar os objetos
@@ -373,7 +378,18 @@ int main(int argc, char* argv[])
             * Matrix_Rotate_X(g_AngleX);
         glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
         glUniform1i(g_object_id_uniform, PLANE);
-        DrawVirtualObject("the_plane");
+        //DrawVirtualObject("the_plane");
+
+         // Desenhamos o modelo do plano (chão)
+        model = Matrix_Scale(1.0, 1.0, 1.0)
+            * Matrix_Translate(50.0f, -1.0f, 0.0f)
+            * Matrix_Rotate_Z(g_AngleZ)
+            * Matrix_Rotate_Y(g_AngleY)
+            * Matrix_Rotate_X(g_AngleX);
+        glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
+        glUniform1i(g_object_id_uniform, RACETRACK);
+        DrawVirtualObject("the_racetrack");
+
 
 
         //Atualiza os valores da câmera
