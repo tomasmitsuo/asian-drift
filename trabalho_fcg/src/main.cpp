@@ -307,7 +307,7 @@ int main(int argc, char* argv[])
     ComputeNormals(&planemodel, false);
     BuildTrianglesAndAddToVirtualScene(&planemodel);
 
-    ObjModel racetrackmodel("../../data/race_track.obj");
+    ObjModel racetrackmodel("../../data/race_track_with_mtl.obj");
     ComputeNormals(&racetrackmodel, false);
     BuildTrianglesAndAddToVirtualScene(&racetrackmodel);
 
@@ -378,7 +378,7 @@ int main(int argc, char* argv[])
             * Matrix_Rotate_X(g_AngleX);
         glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
         glUniform1i(g_object_id_uniform, PLANE);
-        //DrawVirtualObject("the_plane");
+        DrawVirtualObject("the_plane");
 
          // Desenhamos o modelo do plano (chão)
         model = Matrix_Scale(1.0, 1.0, 1.0)
@@ -388,7 +388,7 @@ int main(int argc, char* argv[])
             * Matrix_Rotate_X(g_AngleX);
         glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
         glUniform1i(g_object_id_uniform, RACETRACK);
-        DrawVirtualObject("the_racetrack");
+        //DrawVirtualObject("the_racetrack_withmtl");
 
 
 
