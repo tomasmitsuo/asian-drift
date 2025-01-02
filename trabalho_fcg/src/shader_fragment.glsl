@@ -18,6 +18,7 @@ uniform mat4 projection;
 #define PLANE  2
 #define RACETRACK  3
 #define BUILDING  4
+#define COIN  5
 
 uniform int object_id;
 
@@ -91,6 +92,13 @@ void main()
         q = 20.0;
     }
     else if  ( object_id == BUILDING )
+    {
+        Kd = vec3(0.2,0.2,0.2);
+        Ks = vec3(0.3,0.3,0.3);
+        Ka = vec3(0.0,0.0,0.0);
+        q = 20.0;
+    }
+    else if  ( object_id == COIN )
     {
         Kd = vec3(0.2,0.2,0.2);
         Ks = vec3(0.3,0.3,0.3);

@@ -139,7 +139,9 @@ void CameraProjection(glm::vec4 camera_position_c, glm::vec4 camera_view_vector,
 void CameraMovement(bool look_at, Car* car, glm::vec4* camera_position_c, glm::vec4* camera_view_vector, glm::vec4 camera_up_vector, float delta_t);
 void CarMovement(bool look_at, Car* car, Box* car_collision, glm::vec4* camera_position_c, glm::vec4* camera_view_vector, glm::vec4 camera_up_vector, float delta_t);
 void DrawCar(glm::vec4 camera_view_vector, Car* car);
+void DrawCoin(float delta_t);
 void TextRendering_InfoCar(GLFWwindow* window);
+void BezierMovement(Box* coin, float t, float delta_t);
 
 // Definimos uma estrutura que armazenará dados necessários para renderizar
 // cada objeto da cena virtual.
@@ -207,6 +209,7 @@ bool back = false;
 bool left = false;
 bool right = false;
 bool car_break = false;
+float t = 0.0;
 
 // Ponto de start para marcar onde ele começa
 glm::vec4 start = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
@@ -220,6 +223,11 @@ bool locked = false;
 bool look_back = false;
 bool look_at = true;
 bool switch_camera_type = false;
+
+
+//variavel que atualiza a posição da moeda
+glm::vec4 coin_start_position = coins[0].position;
+
 
 int main(int argc, char* argv[])
 {
@@ -316,6 +324,10 @@ int main(int argc, char* argv[])
     ComputeNormals(&buildingmodel, false);
     BuildTrianglesAndAddToVirtualScene(&buildingmodel);
 
+    ObjModel coinmodel("../../data/coin.obj");
+    ComputeNormals(&coinmodel, false);
+    BuildTrianglesAndAddToVirtualScene(&coinmodel);
+
 
     // Inicializamos o código para renderização de texto.
     TextRendering_Init();
@@ -341,7 +353,7 @@ int main(int argc, char* argv[])
     float delta_t;
 
     // Caixa de colisão do carro (temporary bunny)
-    Box temporary_bunny_collision (temporary_bunny.position, glm::vec4(0.0f, -1.0f, 0.0f, 0.0f), 0.5, 0.25, 0.25, 1);
+    Box temporary_bunny_collision (temporary_bunny.position, glm::vec4(0.0f, -1.0f, 0.0f, 0.0f), 0.5, 0.25, 0.25);
 
     // Ficamos em um loop infinito, renderizando, até que o usuário feche a janela
     while (!glfwWindowShouldClose(window))
@@ -362,6 +374,7 @@ int main(int argc, char* argv[])
         #define PLANE  2
         #define RACETRACK 3
         #define BUILDING 4
+        #define COIN  5
 
 
         //Chama funções auxiliares para desenhar os objetos
@@ -374,7 +387,7 @@ int main(int argc, char* argv[])
         model = Matrix_Scale(1.0,1.0,1.0) * Matrix_Translate(-1.0f,0.0f,0.0f);
         glUniformMatrix4fv(g_model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
         glUniform1i(g_object_id_uniform, SPHERE);
-        DrawVirtualObject("the_sphere");
+        //DrawVirtualObject("the_sphere");
 
         // Desenhamos o modelo do plano (chão)
         model = Matrix_Translate(-22.0f, -1.25f, 25.0f)
@@ -406,6 +419,19 @@ int main(int argc, char* argv[])
         glUniform1i(g_object_id_uniform, BUILDING);
         DrawVirtualObject("the_building");
 
+        // Desenhamos o modelo da coin
+        // model = Matrix_Translate(-22.0f, -1.0f, -20.0f)
+        //     * Matrix_Scale(3.0, 3.0,3.0)
+        //     * Matrix_Rotate_Z(g_AngleZ)
+        //     * Matrix_Rotate_Y(g_AngleY)
+        //     * Matrix_Rotate_X(g_AngleX);
+        // glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
+        // glUniform1i(g_object_id_uniform, COIN);
+        // DrawVirtualObject("the_coin");
+
+        DrawCoin(delta_t);
+
+
 
 
 
@@ -420,13 +446,13 @@ int main(int argc, char* argv[])
 
         CameraProjection(camera_position_c, camera_view_vector, camera_up_vector);
 
-        printf("Car Position: (%.2f, %.2f, %.2f)\n", temporary_bunny.position.x, temporary_bunny.position.y, temporary_bunny.position.z);
-        printf("Direction: (%.2f, %.2f, %.2f)\n", temporary_bunny.direction.x, temporary_bunny.direction.y, temporary_bunny.direction.z);
-        printf("Velocity: %.2f\n", temporary_bunny.velocity);
-        printf("Acceleration: %.2f\n", temporary_bunny.acceleration);
-        printf("Camera Position: (%.2f, %.2f, %.2f)\n", camera_position_c.x, camera_position_c.y, camera_position_c.z);
-        printf("angle: %.2f\n", temporary_bunny.steering_angle);
-        printf("\n");
+        // printf("Car Position: (%.2f, %.2f, %.2f)\n", temporary_bunny.position.x, temporary_bunny.position.y, temporary_bunny.position.z);
+        // printf("Direction: (%.2f, %.2f, %.2f)\n", temporary_bunny.direction.x, temporary_bunny.direction.y, temporary_bunny.direction.z);
+        // printf("Velocity: %.2f\n", temporary_bunny.velocity);
+        // printf("Acceleration: %.2f\n", temporary_bunny.acceleration);
+        // printf("Camera Position: (%.2f, %.2f, %.2f)\n", camera_position_c.x, camera_position_c.y, camera_position_c.z);
+        // printf("angle: %.2f\n", temporary_bunny.steering_angle);
+        // printf("\n");
 
         glBindVertexArray(0);
         TextRendering_ShowFramesPerSecond(window);
@@ -441,6 +467,53 @@ int main(int argc, char* argv[])
     // Fim do programa
     return 0;
 }
+
+//Desenha o Morango
+void DrawCoin(float delta_t){
+    // Fator de desaceleração (quanto menor, mais devagar o movimento)
+    float speed_factor = 0.5f;  // Aumente ou diminua esse valor conforme necessário
+    if (t<=1){
+        t+=delta_t*speed_factor;
+        BezierMovement(&coins[0], t, delta_t);
+    } else if (t>1)
+        t = 0;
+    glm::mat4 model = Matrix_Translate(coins[0].position.x, coins[0].position.y, coins[0].position.z)
+        * Matrix_Scale(3.0,3.0,3.0);
+    glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
+    glUniform1i(g_object_id_uniform, COIN);
+    DrawVirtualObject("the_coin");
+
+}
+
+// Realiza movimento em bézier do morango
+void BezierMovement(Box* coin, float t, float delta_t){
+    glm::vec4 p[9];
+    glm::vec4 c[8];
+    glm::vec4 c2[7];
+    glm::vec4 c3[6];
+    p[0] = coin_start_position + glm::vec4 (0.0f, 0.0f, 0.0f, 1.0f);
+    p[1] = coin_start_position + glm::vec4 (1.0f, 0.0f, 2.0f, 1.0f);
+    p[2] = coin_start_position + glm::vec4 (2.0f, 0.0f, 0.0f, 1.0f);
+    p[3] = coin_start_position + glm::vec4 (1.0f, 0.0f, -2.0f, 1.0f);
+    p[4] = coin_start_position + glm::vec4 (0.0f, 0.0f, 0.0f, 1.0f);
+    p[5] = coin_start_position + glm::vec4 (-1.0f, 0.0f, 2.0f, 1.0f);
+    p[6] = coin_start_position + glm::vec4 (-2.0f, 0.0f, 0.0f, 1.0f);
+    p[7] = coin_start_position + glm::vec4 (-1.0f, 0.0f, -2.0f, 1.0f);
+    p[8] = coin_start_position + glm::vec4 (0.0f, 0.0f, 0.0f, 1.0f);
+
+    for (int i = 0; i < 8; i++){
+        c[i] = p[i] + t*(p[(i+1)]-p[i]);
+    }
+    for (int i = 0; i < 7; i++){
+        c2[i] = c[i] + t*(c[(i+1)]-c[i]);
+    }
+    for (int i = 0; i < 6; i++){
+        c3[i] = c2[i] + t*(c2[(i+1)]-c2[i]);
+    }
+    glm::vec4 ct = c3[0] + t*(c3[1]-c3[0]);
+    coin->position = ct;
+}
+
 
 //Desenha o personagem
 void DrawCar(glm::vec4 camera_view_vector, Car *car) {
@@ -466,6 +539,7 @@ void DrawCar(glm::vec4 camera_view_vector, Car *car) {
     }
 
 }
+
 
 void CameraProjection(glm::vec4 camera_position_c, glm::vec4 camera_view_vector, glm::vec4 camera_up_vector) {
     glm::mat4 view = Matrix_Camera_View(camera_position_c, camera_view_vector, camera_up_vector);
@@ -668,6 +742,12 @@ void CarMovement(bool look_at, Car* car, Box* car_collision, glm::vec4* camera_p
     for (Box cube : cubes){
         movement = CubeCubeCollision(*car_collision, cube, movement);
     }
+
+    //Checa colisões com os cubos
+    for (Box coin : coins){
+        movement = CubeCubeCollision(*car_collision, coin, movement);
+    }
+
 
     // Atualização da posição do carro
     car->position += movement;
