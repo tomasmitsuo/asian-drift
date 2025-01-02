@@ -33,4 +33,6 @@ struct Box
 };
 
 
-Box planes[] =  {Box(glm::vec4 (0.0f,-1.0f,0.0f,1.0f), glm::vec4 (0.0f, 1.0f, 0.0f, 0.0f), 1.0, 30.0, 30.0, 0)};
+Box planes[] =  {Box(glm::vec4 (-22.0f,-1.0f,25.0f,1.0f), glm::vec4 (0.0f, 1.0f, 0.0f, 0.0f), 1.0, 25.0, 50.0, 0)};
+
+Box cubes[] =   {Box(glm::vec4 (-22.0f, -1.0f, 25.0f, 1.0f), glm::vec4 (0.0f, 1.0f, 0.0f, 0.0f), 10.0, 2.5, 3.5, 1)};

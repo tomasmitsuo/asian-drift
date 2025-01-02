@@ -17,6 +17,8 @@ uniform mat4 projection;
 #define BUNNY  1
 #define PLANE  2
 #define RACETRACK  3
+#define BUILDING  4
+
 uniform int object_id;
 
 // O valor de saída ("out") de um Fragment Shader é a cor final do fragmento.
@@ -75,14 +77,20 @@ void main()
     }
     else if ( object_id == PLANE )
     {
-        // PREENCHA AQUI
-        // Propriedades espectrais do plano
+        // Propriedades espectrais do plano com coloração azul
+        Kd = vec3(0.0, 0.0, 0.8); // Refletância difusa azul (componente azul dominante)
+        Ks = vec3(0.2, 0.2, 0.5); // Refletância especular com toque de azul
+        Ka = vec3(0.0, 0.0, 0.2); // Refletância ambiente azul escuro
+        q = 50.0;                 // Aumentar o brilho especular (mais concentrado)
+    }
+    else if  ( object_id == RACETRACK )
+    {
         Kd = vec3(0.2,0.2,0.2);
         Ks = vec3(0.3,0.3,0.3);
         Ka = vec3(0.0,0.0,0.0);
         q = 20.0;
     }
-    else if  ( object_id == RACETRACK )
+    else if  ( object_id == BUILDING )
     {
         Kd = vec3(0.2,0.2,0.2);
         Ks = vec3(0.3,0.3,0.3);

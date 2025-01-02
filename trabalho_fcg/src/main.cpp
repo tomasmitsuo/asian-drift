@@ -312,6 +312,10 @@ int main(int argc, char* argv[])
     ComputeNormals(&racetrackmodel, false);
     BuildTrianglesAndAddToVirtualScene(&racetrackmodel);
 
+    ObjModel buildingmodel("../../data/building.obj");
+    ComputeNormals(&buildingmodel, false);
+    BuildTrianglesAndAddToVirtualScene(&buildingmodel);
+
 
     // Inicializamos o código para renderização de texto.
     TextRendering_Init();
@@ -357,6 +361,7 @@ int main(int argc, char* argv[])
         #define BUNNY  1
         #define PLANE  2
         #define RACETRACK 3
+        #define BUILDING 4
 
 
         //Chama funções auxiliares para desenhar os objetos
@@ -372,8 +377,8 @@ int main(int argc, char* argv[])
         DrawVirtualObject("the_sphere");
 
         // Desenhamos o modelo do plano (chão)
-        model = Matrix_Scale(30.0, 1.0, 30.0)
-            * Matrix_Translate(0.0f, -1.0f, 0.0f)
+        model = Matrix_Translate(-22.0f, -1.25f, 25.0f)
+            * Matrix_Scale(25.0, 1.0,50.0)
             * Matrix_Rotate_Z(g_AngleZ)
             * Matrix_Rotate_Y(g_AngleY)
             * Matrix_Rotate_X(g_AngleX);
@@ -381,15 +386,26 @@ int main(int argc, char* argv[])
         glUniform1i(g_object_id_uniform, PLANE);
         DrawVirtualObject("the_plane");
 
-         // Desenhamos o modelo do plano (chão)
+         // Desenhamos o modelo race track 
         model = Matrix_Scale(1.0, 1.0, 1.0)
-            * Matrix_Translate(50.0f, -1.0f, 0.0f)
+            * Matrix_Translate(14.0f, -1.0f, 0.0f)
             * Matrix_Rotate_Z(g_AngleZ)
             * Matrix_Rotate_Y(g_AngleY)
             * Matrix_Rotate_X(g_AngleX);
         glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
         glUniform1i(g_object_id_uniform, RACETRACK);
         DrawVirtualObject("the_racetrack_withmtl");
+
+         // Desenhamos o modelo do building
+        model = Matrix_Translate(-22.0f, -1.25f, 25.0f)
+            * Matrix_Scale(1.0, 1.0,1.0)
+            * Matrix_Rotate_Z(g_AngleZ)
+            * Matrix_Rotate_Y(g_AngleY)
+            * Matrix_Rotate_X(g_AngleX);
+        glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
+        glUniform1i(g_object_id_uniform, BUILDING);
+        DrawVirtualObject("the_building");
+
 
 
 
@@ -647,6 +663,11 @@ void CarMovement(bool look_at, Car* car, Box* car_collision, glm::vec4* camera_p
     //Checa colisões com os planos
     for (Box plane : planes)
         movement = CubePlaneCollision(*car_collision, movement, plane);
+
+    //Checa colisões com os cubos
+    for (Box cube : cubes){
+        movement = CubeCubeCollision(*car_collision, cube, movement);
+    }
 
     // Atualização da posição do carro
     car->position += movement;
@@ -1609,15 +1630,24 @@ void PrintObjModelInfo(ObjModel* model)
 void TextRendering_InfoCar(GLFWwindow* window){
     if (!g_ShowInfoText)
         return;
+        
     float lineheight = TextRendering_LineHeight(window);
-    std::string buffer = "Velocity: " + std::to_string(temporary_bunny.velocity);
 
+    // Exibir a velocidade
+    std::string buffer = "Velocity: " + std::to_string(temporary_bunny.velocity);
     TextRendering_PrintString(window, buffer, -0.95f, 1.0f - lineheight, 1.0f);
 
+    // Exibir a aceleração
     std::string buffer2 = "Acceleration: " + std::to_string(temporary_bunny.acceleration);
     TextRendering_PrintString(window, buffer2, -0.95f, 0.95f - lineheight, 1.0f);
-}
 
+    // Exibir a posição
+    glm::vec4 pos = temporary_bunny.position;
+    std::string buffer3 = "Position: (" + std::to_string(pos.x) + ", " +
+                                         std::to_string(pos.y) + ", " +
+                                         std::to_string(pos.z) + ")";
+    TextRendering_PrintString(window, buffer3, -0.95f, 0.90f - lineheight, 1.0f);
+}
 
 // set makeprg=cd\ ..\ &&\ make\ run\ >/dev/null
 // vim: set spell spelllang=pt_br :
