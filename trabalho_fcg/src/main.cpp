@@ -139,6 +139,7 @@ void CameraProjection(glm::vec4 camera_position_c, glm::vec4 camera_view_vector,
 void CameraMovement(bool look_at, Car* car, glm::vec4* camera_position_c, glm::vec4* camera_view_vector, glm::vec4 camera_up_vector, float delta_t);
 void CarMovement(bool look_at, Car* car, Box* car_collision, glm::vec4* camera_position_c, glm::vec4* camera_view_vector, glm::vec4 camera_up_vector, float delta_t);
 void DrawCar(glm::vec4 camera_view_vector, Car* car);
+void TextRendering_InfoCar(GLFWwindow* window);
 
 // Definimos uma estrutura que armazenará dados necessários para renderizar
 // cada objeto da cena virtual.
@@ -388,7 +389,7 @@ int main(int argc, char* argv[])
             * Matrix_Rotate_X(g_AngleX);
         glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
         glUniform1i(g_object_id_uniform, RACETRACK);
-        //DrawVirtualObject("the_racetrack_withmtl");
+        DrawVirtualObject("the_racetrack_withmtl");
 
 
 
@@ -413,6 +414,7 @@ int main(int argc, char* argv[])
 
         glBindVertexArray(0);
         TextRendering_ShowFramesPerSecond(window);
+        TextRendering_InfoCar(window);
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
@@ -1603,6 +1605,19 @@ void PrintObjModelInfo(ObjModel* model)
     printf("\n");
   }
 }
+
+void TextRendering_InfoCar(GLFWwindow* window){
+    if (!g_ShowInfoText)
+        return;
+    float lineheight = TextRendering_LineHeight(window);
+    std::string buffer = "Velocity: " + std::to_string(temporary_bunny.velocity);
+
+    TextRendering_PrintString(window, buffer, -0.95f, 1.0f - lineheight, 1.0f);
+
+    std::string buffer2 = "Acceleration: " + std::to_string(temporary_bunny.acceleration);
+    TextRendering_PrintString(window, buffer2, -0.95f, 0.95f - lineheight, 1.0f);
+}
+
 
 // set makeprg=cd\ ..\ &&\ make\ run\ >/dev/null
 // vim: set spell spelllang=pt_br :
