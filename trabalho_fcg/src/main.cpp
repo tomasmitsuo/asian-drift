@@ -1,16 +1,4 @@
-//     Universidade Federal do Rio Grande do Sul
-//             Instituto de Informática
-//       Departamento de Informática Aplicada
-//
-//    INF01047 Fundamentos de Computação Gráfica
-//               Prof. Eduardo Gastal
-//
-//            TRABALHO FINAL ASIAN DRIFT    2024/2
-//
-// GABRIEL KENJI YATSUDA IKUTA 0037491
-// TOMAS MITSUO UEDA
 
-// BIBLIOTECAS STANDARD
 #include <cstdio>
 #include <cstdlib>
 #include <map>
@@ -24,8 +12,8 @@
 #include <algorithm>
 
 // Headers das bibliotecas OpenGL
-#include <glad/glad.h>   // Criação de contexto OpenGL 3.3
-#include <GLFW/glfw3.h>  // Criação de janelas do sistema operacional
+#include <glad/glad.h>  
+#include <GLFW/glfw3.h>
 
 // Headers da biblioteca GLM: criação de matrizes e vetores.
 #include <glm/mat4x4.hpp>
@@ -40,9 +28,6 @@
 #include "matrices.h"
 #include "textrendering.h"
 #include "collisions.h"
-//#include "classes_temporary.h"
-//#include "car.h"
-//#include "box.h"
 
 
 //MINHAS CONSTANTES
