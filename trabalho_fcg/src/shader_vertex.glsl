@@ -1,59 +1,97 @@
 #version 330 core
 
-// Atributos de vértice recebidos como entrada ("in") pelo Vertex Shader.
-// Veja a função BuildTrianglesAndAddToVirtualScene() em "main.cpp".
 layout (location = 0) in vec4 model_coefficients;
 layout (location = 1) in vec4 normal_coefficients;
 layout (location = 2) in vec2 texture_coefficients;
 
-// Matrizes computadas no código C++ e enviadas para a GPU
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
 
-// Atributos de vértice que serão gerados como saída ("out") pelo Vertex Shader.
-// ** Estes serão interpolados pelo rasterizador! ** gerando, assim, valores
-// para cada fragmento, os quais serão recebidos como entrada pelo Fragment
-// Shader. Veja o arquivo "shader_fragment.glsl".
+uniform int object_id;
+
+#define SPHERE 0
+#define BUNNY  1
+#define PLANE  2
+#define RACETRACK  3
+#define BUILDING  4
+#define COIN  5
+
 out vec4 position_world;
 out vec4 normal;
+out vec4 cor_v;
 
 void main()
 {
-    // A variável gl_Position define a posição final de cada vértice
-    // OBRIGATORIAMENTE em "normalized device coordinates" (NDC), onde cada
-    // coeficiente estará entre -1 e 1 após divisão por w.
-    // Veja {+NDC2+}.
-    //
-    // O código em "main.cpp" define os vértices dos modelos em coordenadas
-    // locais de cada modelo (array model_coefficients). Abaixo, utilizamos
-    // operações de modelagem, definição da câmera, e projeção, para computar
-    // as coordenadas finais em NDC (variável gl_Position). Após a execução
-    // deste Vertex Shader, a placa de vídeo (GPU) fará a divisão por W. Veja
-    // slides 41-67 e 69-86 do documento Aula_09_Projecoes.pdf.
+    // CASO O VERTICE SENDO MAPEADO PERTENÇA AO CARRO OU A MOEDA, SERÁ APENAS MAPEADO
+    // PARA QUE OCORRA UMA INTERPOLAÇÃO DE PHONG
 
     gl_Position = projection * view * model * model_coefficients;
-
-    // Como as variáveis acima  (tipo vec4) são vetores com 4 coeficientes,
-    // também é possível acessar e modificar cada coeficiente de maneira
-    // independente. Esses são indexados pelos nomes x, y, z, e w (nessa
-    // ordem, isto é, 'x' é o primeiro coeficiente, 'y' é o segundo, ...):
-    //
-    //     gl_Position.x = model_coefficients.x;
-    //     gl_Position.y = model_coefficients.y;
-    //     gl_Position.z = model_coefficients.z;
-    //     gl_Position.w = model_coefficients.w;
-    //
-
-    // Agora definimos outros atributos dos vértices que serão interpolados pelo
-    // rasterizador para gerar atributos únicos para cada fragmento gerado.
-
-    // Posição do vértice atual no sistema de coordenadas global (World).
     position_world = model * model_coefficients;
-
-    // Normal do vértice atual no sistema de coordenadas global (World).
-    // Veja slides 123-151 do documento Aula_07_Transformacoes_Geometricas_3D.pdf.
     normal = inverse(transpose(model)) * normal_coefficients;
     normal.w = 0.0;
-}
+    
 
+    if (object_id != BUNNY && object_id != COIN) //GOURAND SHADING
+    {
+        vec4 origin = vec4(0.0, 0.0, 0.0, 1.0);
+        vec4 camera_position = inverse(view) * origin;
+
+        vec4 p = position_world;
+        vec4 n = normalize(normal);
+        vec4 l = normalize(vec4(1.0,1.0,0.5,0.0));
+        vec4 v = normalize(camera_position - p);
+        vec4 r = -l + 2*n*(dot(n,l));
+
+        vec3 Kd,Ks,Ka;
+        float q;
+
+        if (object_id == SPHERE)
+        {
+            Kd = vec3(0.8, 0.4, 0.08);
+            Ks = vec3(0.0, 0.0, 0.0);
+            Ka = vec3(0.4, 0.2, 0.04);
+            q = 1.0;
+        }
+        else if (object_id == PLANE)
+        {
+            Kd = vec3(0.2, 0.2, 0.2);
+            Ks = vec3(0.3, 0.3, 0.3);
+            Ka = vec3(0.0, 0.0, 0.0);
+            q = 20.0;
+        }
+        else if (object_id == RACETRACK)
+        {
+            Kd = vec3(1.0, 1.0, 1.0);  // White diffuse color
+            Ks = vec3(0.3, 0.3, 0.3);  // Keeping the same specular
+            Ka = vec3(0.1, 0.1, 0.1);  // Slight white ambient
+            q = 20.0;
+        }
+        else if (object_id == BUILDING)
+        {
+            Kd = vec3(1.0, 1.0, 0.0);  // Yellow diffuse color
+            Ks = vec3(0.3, 0.3, 0.3);  // Keeping the same specular
+            Ka = vec3(0.2, 0.2, 0.0);  // Slight yellow ambient
+            q = 20.0;
+        }
+        else
+        {
+            Kd = vec3(0.0,0.0,0.0);
+            Ks = vec3(0.0,0.0,0.0);
+            Ka = vec3(0.0,0.0,0.0);
+            q = 1.0;
+        }
+
+
+        // TUDO QUE ESTÁ SENDO INTERPOLADO USANDO GOURAUD, UTILIZARÁ LAMBERT PARA A ILUMINAÇÃO
+        // E TUDO QUE FOR INTERPOLADO USANDO PHONG, UTILIZARÁ BLINN-PHONG PARA A ILUMINAÇÃO
+        vec3 I = vec3(1.0,1.0,1.0); 
+        vec3 Ia = vec3(0.2,0.2,0.2);
+        vec3 lambert_diffuse_term = Kd * I * max(0, dot(n,l)); 
+        vec3 ambient_term = Ka * Ia;
+
+        cor_v = vec4(0.0,0.0,0.0,1.0);
+        cor_v.a = 1;
+        cor_v.rgb = lambert_diffuse_term + ambient_term; // Calcula iluminação de Lambert
+    }
+}

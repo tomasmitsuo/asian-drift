@@ -376,10 +376,6 @@ int main(int argc, char* argv[])
         #define BUILDING 4
         #define COIN  5
 
-
-        //Chama funções auxiliares para desenhar os objetos
-        //DrawPlanes();
-
         //desenha o carro
         DrawCar(camera_view_vector, &temporary_bunny);
 
@@ -437,22 +433,12 @@ int main(int argc, char* argv[])
 
         //Atualiza os valores da câmera
         CameraMovement(look_at, &temporary_bunny, &camera_position_c, &camera_view_vector, camera_up_vector, delta_t);
-    
-        //Atualiza posição do carro
         CarMovement(look_at, &temporary_bunny, &temporary_bunny_collision, &camera_position_c, &camera_view_vector, camera_up_vector, delta_t );
 
         // Salva número de segundos que passou para fazer o frame refresh
         old_seconds = (float)glfwGetTime();
 
         CameraProjection(camera_position_c, camera_view_vector, camera_up_vector);
-
-        // printf("Car Position: (%.2f, %.2f, %.2f)\n", temporary_bunny.position.x, temporary_bunny.position.y, temporary_bunny.position.z);
-        // printf("Direction: (%.2f, %.2f, %.2f)\n", temporary_bunny.direction.x, temporary_bunny.direction.y, temporary_bunny.direction.z);
-        // printf("Velocity: %.2f\n", temporary_bunny.velocity);
-        // printf("Acceleration: %.2f\n", temporary_bunny.acceleration);
-        // printf("Camera Position: (%.2f, %.2f, %.2f)\n", camera_position_c.x, camera_position_c.y, camera_position_c.z);
-        // printf("angle: %.2f\n", temporary_bunny.steering_angle);
-        // printf("\n");
 
         glBindVertexArray(0);
         TextRendering_ShowFramesPerSecond(window);
@@ -1455,7 +1441,6 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
     {
         g_AngleX += (mod & GLFW_MOD_SHIFT) ? -delta : delta;
     }
-
     if (key == GLFW_KEY_Y && action == GLFW_PRESS)
     {
         g_AngleY += (mod & GLFW_MOD_SHIFT) ? -delta : delta;
