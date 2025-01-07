@@ -34,15 +34,12 @@
 
 // Headers da biblioteca para carregar modelos obj
 #include <tiny_obj_loader.h>
+#include <stb_image.h>
 
 // Headers locais, definidos na pasta "include/"
 #include "utils.h"
 #include "matrices.h"
-#include "textrendering.h"
 #include "collisions.h"
-//#include "classes_temporary.h"
-//#include "car.h"
-//#include "box.h"
 
 
 //MINHAS CONSTANTES
@@ -117,6 +114,7 @@ void PopMatrix(glm::mat4& M);
 void BuildTrianglesAndAddToVirtualScene(ObjModel*); // Constrói representação de um ObjModel como malha de triângulos para renderização
 void ComputeNormals(ObjModel* model, bool inverte); // Computa normais de um ObjModel, caso não existam.
 void LoadShadersFromFiles(); // Carrega os shaders de vértice e fragmento, criando um programa de GPU
+void LoadTextureImage(const char* filename);
 void DrawVirtualObject(const char* object_name); // Desenha um objeto armazenado em g_VirtualScene
 GLuint LoadShader_Vertex(const char* filename);   // Carrega um vertex shader
 GLuint LoadShader_Fragment(const char* filename); // Carrega um fragment shader
@@ -124,6 +122,24 @@ void LoadShader(const char* filename, GLuint shader_id); // Função utilizada p
 GLuint CreateGpuProgram(GLuint vertex_shader_id, GLuint fragment_shader_id); // Cria um programa de GPU
 void PrintObjModelInfo(ObjModel*); // Função para debugging
 
+// Declaração de funções auxiliares para renderizar texto dentro da janela
+// OpenGL. Estas funções estão definidas no arquivo "textrendering.cpp".
+void TextRendering_Init();
+float TextRendering_LineHeight(GLFWwindow* window);
+float TextRendering_CharWidth(GLFWwindow* window);
+void TextRendering_PrintString(GLFWwindow* window, const std::string &str, float x, float y, float scale = 1.0f);
+void TextRendering_PrintMatrix(GLFWwindow* window, glm::mat4 M, float x, float y, float scale = 1.0f);
+void TextRendering_PrintVector(GLFWwindow* window, glm::vec4 v, float x, float y, float scale = 1.0f);
+void TextRendering_PrintMatrixVectorProduct(GLFWwindow* window, glm::mat4 M, glm::vec4 v, float x, float y, float scale = 1.0f);
+void TextRendering_PrintMatrixVectorProductMoreDigits(GLFWwindow* window, glm::mat4 M, glm::vec4 v, float x, float y, float scale = 1.0f);
+void TextRendering_PrintMatrixVectorProductDivW(GLFWwindow* window, glm::mat4 M, glm::vec4 v, float x, float y, float scale = 1.0f);
+
+// Funções abaixo renderizam como texto na janela OpenGL algumas matrizes e
+// outras informações do programa. Definidas após main().
+void TextRendering_ShowModelViewProjection(GLFWwindow* window, glm::mat4 projection, glm::mat4 view, glm::mat4 model, glm::vec4 p_model);
+void TextRendering_ShowEulerAngles(GLFWwindow* window);
+void TextRendering_ShowProjection(GLFWwindow* window);
+void TextRendering_ShowFramesPerSecond(GLFWwindow* window);
 
 // Funções callback para comunicação com o sistema operacional e interação do
 // usuário. Veja mais comentários nas definições das mesmas, abaixo.
@@ -152,6 +168,8 @@ struct SceneObject
     size_t       num_indices; // Número de índices do objeto dentro do vetor indices[] definido em BuildTrianglesAndAddToVirtualScene()
     GLenum       rendering_mode; // Modo de rasterização (GL_TRIANGLES, GL_TRIANGLE_STRIP, etc.)
     GLuint       vertex_array_object_id; // ID do VAO onde estão armazenados os atributos do modelo
+    glm::vec3 bbox_min;
+    glm::vec3 bbox_max;
 };
 
 // Abaixo definimos variáveis globais utilizadas em várias funções do código.
@@ -202,6 +220,8 @@ GLint g_projection_uniform;
 GLint g_object_id_uniform;
 GLint g_bbox_min_uniform;
 GLint g_bbox_max_uniform;
+
+GLuint g_NumLoadedTextures = 0;
 
 // Variáveis que definem as possibilidades de movimento da câmera livre
 bool front = false;
@@ -301,16 +321,24 @@ int main(int argc, char* argv[])
     //
     LoadShadersFromFiles();
 
+   LoadTextureImage("../../data/hangar_concrete_floor_diff_4k.jpg"); //BUNNY
+    LoadTextureImage("../../data/gold.jpg"); //COIN
+    LoadTextureImage("../../data/grass.jpg"); //PLANE
+    LoadTextureImage("../../data/asphalt.jpg"); //RACETRACK
+    LoadTextureImage("../../data/passion_fruit.jpg"); //BUILDING
+
+
     TextRendering_Init();
 
     // Construímos a representação de objetos geométricos através de malhas de triângulos
-    ObjModel spheremodel("../../data/sphere.obj");
-    ComputeNormals(&spheremodel, true);
-    BuildTrianglesAndAddToVirtualScene(&spheremodel);
 
     ObjModel bunnymodel("../../data/Skyline_R32.obj");
     ComputeNormals(&bunnymodel, false);
     BuildTrianglesAndAddToVirtualScene(&bunnymodel);
+
+    ObjModel coinmodel("../../data/coin.obj");
+    ComputeNormals(&coinmodel, false);
+    BuildTrianglesAndAddToVirtualScene(&coinmodel);
 
     ObjModel planemodel("../../data/plane.obj");
     ComputeNormals(&planemodel, false);
@@ -324,10 +352,11 @@ int main(int argc, char* argv[])
     ComputeNormals(&buildingmodel, false);
     BuildTrianglesAndAddToVirtualScene(&buildingmodel);
 
-    ObjModel coinmodel("../../data/coin.obj");
-    ComputeNormals(&coinmodel, false);
-    BuildTrianglesAndAddToVirtualScene(&coinmodel);
-
+    if (argc > 1)
+    {
+        ObjModel model(argv[1]);
+        BuildTrianglesAndAddToVirtualScene(&model);
+    }
 
     // Inicializamos o código para renderização de texto.
     TextRendering_Init();
@@ -368,13 +397,11 @@ int main(int argc, char* argv[])
 
         glm::mat4 model = Matrix_Identity(); // Transformação identidade de modelagem
 
-
-        #define SPHERE 0
-        #define BUNNY  1
+        #define BUNNY  0
+        #define COIN  1
         #define PLANE  2
-        #define RACETRACK 3
-        #define BUILDING 4
-        #define COIN  5
+        #define RACETRACK  3
+        #define BUILDING  4
 
 
         //Chama funções auxiliares para desenhar os objetos
@@ -382,12 +409,6 @@ int main(int argc, char* argv[])
 
         //desenha o carro
         DrawCar(camera_view_vector, &temporary_bunny);
-
-        // Desenhamos o modelo da esfera
-        model = Matrix_Scale(1.0,1.0,1.0) * Matrix_Translate(-1.0f,0.0f,0.0f);
-        glUniformMatrix4fv(g_model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-        glUniform1i(g_object_id_uniform, SPHERE);
-        //DrawVirtualObject("the_sphere");
 
         // Desenhamos o modelo do plano (chão)
         model = Matrix_Translate(-22.0f, -1.25f, 25.0f)
@@ -419,20 +440,8 @@ int main(int argc, char* argv[])
         glUniform1i(g_object_id_uniform, BUILDING);
         DrawVirtualObject("the_building");
 
-        // Desenhamos o modelo da coin
-        // model = Matrix_Translate(-22.0f, -1.0f, -20.0f)
-        //     * Matrix_Scale(3.0, 3.0,3.0)
-        //     * Matrix_Rotate_Z(g_AngleZ)
-        //     * Matrix_Rotate_Y(g_AngleY)
-        //     * Matrix_Rotate_X(g_AngleX);
-        // glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
-        // glUniform1i(g_object_id_uniform, COIN);
-        // DrawVirtualObject("the_coin");
 
         DrawCoin(delta_t);
-
-
-
 
 
         //Atualiza os valores da câmera
@@ -468,7 +477,58 @@ int main(int argc, char* argv[])
     return 0;
 }
 
-//Desenha o Morango
+void LoadTextureImage(const char* filename)
+{
+    printf("Carregando imagem \"%s\"... ", filename);
+
+    // Primeiro fazemos a leitura da imagem do disco
+    stbi_set_flip_vertically_on_load(true);
+    int width;
+    int height;
+    int channels;
+    unsigned char *data = stbi_load(filename, &width, &height, &channels, 3);
+
+    if ( data == NULL )
+    {
+        fprintf(stderr, "ERROR: Cannot open image file \"%s\".\n", filename);
+        std::exit(EXIT_FAILURE);
+    }
+
+    printf("OK (%dx%d).\n", width, height);
+
+    // Agora criamos objetos na GPU com OpenGL para armazenar a textura
+    GLuint texture_id;
+    GLuint sampler_id;
+    glGenTextures(1, &texture_id);
+    glGenSamplers(1, &sampler_id);
+
+    // Veja slides 95-96 do documento Aula_20_Mapeamento_de_Texturas.pdf
+    glSamplerParameteri(sampler_id, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glSamplerParameteri(sampler_id, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    // Parâmetros de amostragem da textura.
+    glSamplerParameteri(sampler_id, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glSamplerParameteri(sampler_id, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    // Agora enviamos a imagem lida do disco para a GPU
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+    glPixelStorei(GL_UNPACK_SKIP_PIXELS, 0);
+    glPixelStorei(GL_UNPACK_SKIP_ROWS, 0);
+
+    GLuint textureunit = g_NumLoadedTextures;
+    glActiveTexture(GL_TEXTURE0 + textureunit);
+    glBindTexture(GL_TEXTURE_2D, texture_id);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB8, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+    glGenerateMipmap(GL_TEXTURE_2D);
+    glBindSampler(textureunit, sampler_id);
+
+    stbi_image_free(data);
+
+    g_NumLoadedTextures += 1;
+}
+
+//Desenha a moeda
 void DrawCoin(float delta_t){
     // Fator de desaceleração (quanto menor, mais devagar o movimento)
     float speed_factor = 0.5f;  // Aumente ou diminua esse valor conforme necessário
@@ -768,6 +828,13 @@ void DrawVirtualObject(const char* object_name)
     // comentários detalhados dentro da definição de BuildTrianglesAndAddToVirtualScene().
     glBindVertexArray(g_VirtualScene[object_name].vertex_array_object_id);
 
+    // Setamos as variáveis "bbox_min" e "bbox_max" do fragment shader
+    // com os parâmetros da axis-aligned bounding box (AABB) do modelo.
+    glm::vec3 bbox_min = g_VirtualScene[object_name].bbox_min;
+    glm::vec3 bbox_max = g_VirtualScene[object_name].bbox_max;
+    glUniform4f(g_bbox_min_uniform, bbox_min.x, bbox_min.y, bbox_min.z, 1.0f);
+    glUniform4f(g_bbox_max_uniform, bbox_max.x, bbox_max.y, bbox_max.z, 1.0f);
+
     // Pedimos para a GPU rasterizar os vértices dos eixos XYZ
     // apontados pelo VAO como linhas. Veja a definição de
     // g_VirtualScene[""] dentro da função BuildTrianglesAndAddToVirtualScene(), e veja
@@ -825,6 +892,17 @@ void LoadShadersFromFiles()
     g_view_uniform       = glGetUniformLocation(g_GpuProgramID, "view"); // Variável da matriz "view" em shader_vertex.glsl
     g_projection_uniform = glGetUniformLocation(g_GpuProgramID, "projection"); // Variável da matriz "projection" em shader_vertex.glsl
     g_object_id_uniform  = glGetUniformLocation(g_GpuProgramID, "object_id"); // Variável "object_id" em shader_fragment.glsl
+    g_bbox_min_uniform = glGetUniformLocation(g_GpuProgramID, "bbox_min");
+    g_bbox_max_uniform = glGetUniformLocation(g_GpuProgramID, "bbox_max");
+
+    glUseProgram(g_GpuProgramID);
+    glUniform1i(glGetUniformLocation(g_GpuProgramID, "TextureImage0"), 0);
+    glUniform1i(glGetUniformLocation(g_GpuProgramID, "TextureImage1"), 1);
+    glUniform1i(glGetUniformLocation(g_GpuProgramID, "TextureImage2"), 2);
+    glUniform1i(glGetUniformLocation(g_GpuProgramID, "TextureImage3"), 3);
+    glUniform1i(glGetUniformLocation(g_GpuProgramID, "TextureImage4"), 4);
+    glUseProgram(0);
+
 }
 
 // Função que pega a matriz M e guarda a mesma no topo da pilha
@@ -1441,37 +1519,6 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
         glfwSetWindowShouldClose(window, GL_TRUE);
 
-    // O código abaixo implementa a seguinte lógica:
-    //   Se apertar tecla X       então g_AngleX += delta;
-    //   Se apertar tecla shift+X então g_AngleX -= delta;
-    //   Se apertar tecla Y       então g_AngleY += delta;
-    //   Se apertar tecla shift+Y então g_AngleY -= delta;
-    //   Se apertar tecla Z       então g_AngleZ += delta;
-    //   Se apertar tecla shift+Z então g_AngleZ -= delta;
-
-    float delta = 3.141592 / 16; // 22.5 graus, em radianos.
-
-    if (key == GLFW_KEY_X && action == GLFW_PRESS)
-    {
-        g_AngleX += (mod & GLFW_MOD_SHIFT) ? -delta : delta;
-    }
-
-    if (key == GLFW_KEY_Y && action == GLFW_PRESS)
-    {
-        g_AngleY += (mod & GLFW_MOD_SHIFT) ? -delta : delta;
-    }
-    if (key == GLFW_KEY_Z && action == GLFW_PRESS)
-    {
-        g_AngleZ += (mod & GLFW_MOD_SHIFT) ? -delta : delta;
-    }
-
-    // Se o usuário apertar a tecla espaço, resetamos os ângulos de Euler para zero.
-    if (key == GLFW_KEY_SPACE && action == GLFW_PRESS)
-    {
-        g_AngleX = 0.0f;
-        g_AngleY = 0.0f;
-        g_AngleZ = 0.0f;
-    }
 
     // Se o usuário apertar a tecla P, utilizamos projeção perspectiva.
     if (key == GLFW_KEY_P && action == GLFW_PRESS)
@@ -1485,8 +1532,8 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
         g_UsePerspectiveProjection = false;
     }
 
-    // Se o usuário apertar a tecla H, fazemos um "toggle" do texto informativo mostrado na tela.
-    if (key == GLFW_KEY_H && action == GLFW_PRESS)
+    // Se o usuário apertar a tecla X, fazemos um "toggle" do texto informativo mostrado na tela.
+    if (key == GLFW_KEY_X && action == GLFW_PRESS)
     {
         g_ShowInfoText = !g_ShowInfoText;
     }
@@ -1707,6 +1754,41 @@ void PrintObjModelInfo(ObjModel* model)
   }
 }
 
+void TextRendering_ShowFramesPerSecond(GLFWwindow* window)
+{
+    if (!g_ShowInfoText)
+        return;
+
+    // Variáveis estáticas (static) mantém seus valores entre chamadas
+    // subsequentes da função!
+    static float old_seconds = (float)glfwGetTime();
+    static int   ellapsed_frames = 0;
+    static char  buffer[20] = "?? fps";
+    static int   numchars = 7;
+
+    ellapsed_frames += 1;
+
+    // Recuperamos o número de segundos que passou desde a execução do programa
+    float seconds = (float)glfwGetTime();
+
+    // Número de segundos desde o último cálculo do fps
+    float ellapsed_seconds = seconds - old_seconds;
+
+    if (ellapsed_seconds > 1.0f)
+    {
+        numchars = snprintf(buffer, 20, "%.2f fps", ellapsed_frames / ellapsed_seconds);
+
+        old_seconds = seconds;
+        ellapsed_frames = 0;
+    }
+
+    float lineheight = TextRendering_LineHeight(window);
+    float charwidth = TextRendering_CharWidth(window);
+
+    TextRendering_PrintString(window, buffer, 1.0f - (numchars + 1) * charwidth, 1.0f - lineheight, 1.0f);
+}
+
+
 void TextRendering_InfoCar(GLFWwindow* window){
     if (!g_ShowInfoText)
         return;
@@ -1728,7 +1810,4 @@ void TextRendering_InfoCar(GLFWwindow* window){
                                          std::to_string(pos.z) + ")";
     TextRendering_PrintString(window, buffer3, -0.95f, 0.90f - lineheight, 1.0f);
 }
-
-// set makeprg=cd\ ..\ &&\ make\ run\ >/dev/null
-// vim: set spell spelllang=pt_br :
 
