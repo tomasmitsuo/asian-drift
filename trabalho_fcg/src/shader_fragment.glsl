@@ -76,14 +76,14 @@ void main()
 
     if (object_id == BUNNY)
     {
-        local_texcoords = coordenadasPlanares(position_model, bbox_min, bbox_max);
+        local_texcoords = coordenadasPlanaresXY(position_model, bbox_min, bbox_max);
         Kd = texture(TextureImage0, local_texcoords).rgb;
         Ks = vec3(0.8, 0.8, 0.8);
         Ka = vec3(0.5, 0.5, 0.5);
         q = 32.0;
     } else if (object_id == COIN) 
     {
-        local_texcoords = coordenadasPlanares(position_model, bbox_min, bbox_max);
+        local_texcoords = coordenadasPlanaresXY(position_model, bbox_min, bbox_max);
         Kd = texture(TextureImage1, local_texcoords).rgb;
         Ks = vec3(0.2, 0.2, 0.5);
         Ka = vec3(0.5, 0.5, 0.5);
@@ -91,15 +91,17 @@ void main()
     } 
     else if (object_id == PLANE) 
     {
-        local_texcoords = texcoords;
+        // local_texcoords = texcoords;
+        local_texcoords = coordenadasPlanaresXZ(position_model, bbox_min, bbox_max);
         Kd = texture(TextureImage2, local_texcoords).rgb;
+		// Kd = vec3(local_texcoords.xy, 0.0);
         Ks = vec3(0.3, 0.3, 0.3);
         Ka = vec3(0.5, 0.5, 0.5);
         q = 20.0;
     } 
     else if (object_id == RACETRACK) 
     {
-        local_texcoords = coordenadasPlanares(position_model, bbox_min, bbox_max);
+        local_texcoords = coordenadasPlanaresXY(position_model, bbox_min, bbox_max);
         Kd = texture(TextureImage3, local_texcoords).rgb;
         Ks = vec3(0.3, 0.3, 0.3);
         Ka = vec3(0.5, 0.5, 0.5);
@@ -107,7 +109,7 @@ void main()
     } 
     else if (object_id == BUILDING) 
     {
-        local_texcoords = coordenadasPlanares(position_model, bbox_min, bbox_max);
+        local_texcoords = coordenadasPlanaresXY(position_model, bbox_min, bbox_max);
         Kd = texture(TextureImage4, local_texcoords).rgb;
         Ks = vec3(0.3, 0.3, 0.3);
         Ka = vec3(0.5, 0.5, 0.5);
