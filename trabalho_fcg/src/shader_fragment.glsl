@@ -56,6 +56,11 @@ vec2 coordenadasPlanaresXZ(vec4 position_model, vec4 bbox_min, vec4 bbox_max) {
     return vec2(U, V);
 }
 
+vec2 coordenadasPlanaresYZ(vec4 position_model, vec4 bbox_min, vec4 bbox_max) {
+    float U = (position_model.y - bbox_min.y) / (bbox_max.y - bbox_min.y);
+    float V = (position_model.z - bbox_min.z) / (bbox_max.z - bbox_min.z);
+    return vec2(U, V);
+}
 void main()
 {
     vec4 origin = vec4(0.0, 0.0, 0.0, 1.0);
@@ -76,35 +81,43 @@ void main()
 
     if (object_id == BUNNY)
     {
-        local_texcoords = coordenadasPlanaresXY(position_model, bbox_min, bbox_max);
+        local_texcoords = coordenadasPlanaresXZ(position_model, bbox_min, bbox_max);
+        local_texcoords.y = 1.0 - local_texcoords.y;
+        local_texcoords *= 3.0;
+        local_texcoords.x *= 0.55;
+        local_texcoords.y *= 2.0;
+
+        local_texcoords.x -= 0.33; 
+        local_texcoords.y -= 0.5; 
+
         Kd = texture(TextureImage0, local_texcoords).rgb;
         Ks = vec3(0.8, 0.8, 0.8);
-        Ka = vec3(0.5, 0.5, 0.5);
+        Ka = vec3(0.2, 0.2, 0.2);
         q = 32.0;
     } else if (object_id == COIN) 
     {
         local_texcoords = coordenadasPlanaresXY(position_model, bbox_min, bbox_max);
         Kd = texture(TextureImage1, local_texcoords).rgb;
-        Ks = vec3(0.2, 0.2, 0.5);
-        Ka = vec3(0.5, 0.5, 0.5);
+        Ks = vec3(0.8, 0.8, 0.8);
+        Ka = vec3(0.2, 0.2, 0.2);
         q = 50.0;
     } 
     else if (object_id == PLANE) 
     {
-        // local_texcoords = texcoords;
         local_texcoords = coordenadasPlanaresXZ(position_model, bbox_min, bbox_max);
         Kd = texture(TextureImage2, local_texcoords).rgb;
-		// Kd = vec3(local_texcoords.xy, 0.0);
         Ks = vec3(0.3, 0.3, 0.3);
-        Ka = vec3(0.5, 0.5, 0.5);
+        Ka = vec3(0.2, 0.2, 0.2);
         q = 20.0;
     } 
     else if (object_id == RACETRACK) 
     {
-        local_texcoords = coordenadasPlanaresXY(position_model, bbox_min, bbox_max);
+        local_texcoords = coordenadasEsfericas(position_model,bbox_min,bbox_max);
+        local_texcoords *= 1.5f;
+
         Kd = texture(TextureImage3, local_texcoords).rgb;
         Ks = vec3(0.3, 0.3, 0.3);
-        Ka = vec3(0.5, 0.5, 0.5);
+        Ka = vec3(0.2, 0.2, 0.2);
         q = 20.0;
     } 
     else if (object_id == BUILDING) 
@@ -112,7 +125,7 @@ void main()
         local_texcoords = coordenadasPlanaresXY(position_model, bbox_min, bbox_max);
         Kd = texture(TextureImage4, local_texcoords).rgb;
         Ks = vec3(0.3, 0.3, 0.3);
-        Ka = vec3(0.5, 0.5, 0.5);
+        Ka = vec3(0.2, 0.2, 0.2);
         q = 20.0;
     } else 
     {
@@ -121,8 +134,8 @@ void main()
         Ka = vec3(0.0, 0.0, 0.0);
         q = 1.0;
     }
-/*
-    vec3 Ia = vec3(0.2,0.2,0.2);
+
+    vec3 Ia = vec3(0.1,0.1,0.1);
     vec3 ambient = Ka * Ia;
 
     float lambert = max(0.0, dot(n, l));
@@ -133,16 +146,15 @@ void main()
     float spec = pow(max(dot(n, h), 0.0), q);
     vec3 specular = Ks * spec;
 
-    if (object_id == BUNNY || object_id == COIN) {
+    if (object_id == BUNNY || object_id == COIN)
+    {
         color.rgb = diffuse + ambient + specular;
-        color.rgb = pow(color.rgb, vec3(1.0 / 2.2));
-    } else {
-        color.rgb = diffuse + ambient;
-        color.rgb = pow(color.rgb, vec3(1.0 / 2.2));
     }
-*/
-float lambert = max(0,dot(n,l));
-color.rgb = Kd * (lambert + 0.01);
-color.a = 1;
-color.rgb = pow(color.rgb, vec3(1.0,1.0,1.0)/2.2);
+    else
+    {
+        color.rgb = diffuse + ambient;
+    }
+
+    color.a = 1;
+    color.rgb = pow(color.rgb, vec3(1.0,1.0,1.0)/2.2);
 }

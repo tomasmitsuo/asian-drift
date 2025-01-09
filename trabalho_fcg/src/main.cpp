@@ -154,6 +154,8 @@ void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset);
 void CameraProjection(glm::vec4 camera_position_c, glm::vec4 camera_view_vector, glm::vec4 camera_up_vector); 
 void CameraMovement(bool look_at, Car* car, glm::vec4* camera_position_c, glm::vec4* camera_view_vector, glm::vec4 camera_up_vector, float delta_t);
 void CarMovement(bool look_at, Car* car, Box* car_collision, glm::vec4* camera_position_c, glm::vec4* camera_view_vector, glm::vec4 camera_up_vector, float delta_t);
+void DrawPlane(glm::vec3 position);
+void DrawPlanes();
 void DrawCar(glm::vec4 camera_view_vector, Car* car);
 void DrawCoin(float delta_t);
 void TextRendering_InfoCar(GLFWwindow* window);
@@ -321,10 +323,10 @@ int main(int argc, char* argv[])
     //
     LoadShadersFromFiles();
 
-   LoadTextureImage("../../data/hangar_concrete_floor_diff_4k.jpg"); //BUNNY
+   LoadTextureImage("../../data/redbull.png"); //BUNNY
     LoadTextureImage("../../data/gold.jpg"); //COIN
     LoadTextureImage("../../data/grass.jpg"); //PLANE
-    LoadTextureImage("../../data/asphalt.jpg"); //RACETRACK
+    LoadTextureImage("../../data/hangar_concrete_floor_diff_4k.jpg"); //RACETRACK
     LoadTextureImage("../../data/passion_fruit.jpg"); //BUILDING
 
 
@@ -405,20 +407,9 @@ int main(int argc, char* argv[])
 
 
         //Chama funções auxiliares para desenhar os objetos
-        //DrawPlanes();
-
+        DrawPlanes();
         //desenha o carro
         DrawCar(camera_view_vector, &temporary_bunny);
-
-        // Desenhamos o modelo do plano (chão)
-        model = Matrix_Translate(-22.0f, -1.25f, 25.0f)
-            * Matrix_Scale(25.0, 1.0,50.0)
-            * Matrix_Rotate_Z(g_AngleZ)
-            * Matrix_Rotate_Y(g_AngleY)
-            * Matrix_Rotate_X(g_AngleX);
-        glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
-        glUniform1i(g_object_id_uniform, PLANE);
-        DrawVirtualObject("the_plane");
 
          // Desenhamos o modelo race track 
         model = Matrix_Scale(1.0, 1.0, 1.0)
@@ -597,11 +588,39 @@ void DrawCar(glm::vec4 camera_view_vector, Car *car) {
         glUniform1i(g_object_id_uniform, BUNNY);
         DrawVirtualObject("Skyline_R32");
     }
+}
 
+void DrawPlane(glm::vec3 position)
+{
+    glm::mat4 model = Matrix_Identity();
+    model = Matrix_Translate(position.x, position.y, position.z)
+            * Matrix_Scale(10.0, 1.0,10.0)
+            * Matrix_Rotate_Z(g_AngleZ)
+            * Matrix_Rotate_Y(g_AngleY)
+            * Matrix_Rotate_X(g_AngleX);
+        glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
+        glUniform1i(g_object_id_uniform, PLANE);
+        DrawVirtualObject("the_plane");
+}
+
+void DrawPlanes()
+{
+        int i,j;
+        //PRIMEIRO PLANO X = 0 E Z = -20
+        //
+        for(i=0;i>=-2;i--)
+        {
+            for(j=-1;j<=5;j++)
+            {
+                DrawPlane(glm::vec3 (20.0f*i, -1.25f, 20.0f*j));
+            }
+        }
 }
 
 
-void CameraProjection(glm::vec4 camera_position_c, glm::vec4 camera_view_vector, glm::vec4 camera_up_vector) {
+
+void CameraProjection(glm::vec4 camera_position_c, glm::vec4 camera_view_vector, glm::vec4 camera_up_vector)
+{
     glm::mat4 view = Matrix_Camera_View(camera_position_c, camera_view_vector, camera_up_vector);
     glm::mat4 projection;
     float nearplane = -0.1f;
@@ -625,8 +644,8 @@ void CameraProjection(glm::vec4 camera_position_c, glm::vec4 camera_view_vector,
 }
 
 //Atualiza os valores da camera / realiza a troca entre free e look-at
-void CameraMovement(bool look_at, Car* car, glm::vec4* camera_position_c, glm::vec4* camera_view_vector, glm::vec4 camera_up_vector, float delta_t) {
-
+void CameraMovement(bool look_at, Car* car, glm::vec4* camera_position_c, glm::vec4* camera_view_vector, glm::vec4 camera_up_vector, float delta_t)
+{
     // Atualizamos os vetores da câmera quando seu tipo muda
     if (switch_camera_type) 
     {
@@ -676,13 +695,12 @@ void CameraMovement(bool look_at, Car* car, glm::vec4* camera_position_c, glm::v
         (*camera_view_vector) = glm::vec4(x, y, z, 0.0f);
         *camera_position_c = car->position;
     }
-
 }
 
 
 
-void CarMovement(bool look_at, Car* car, Box* car_collision, glm::vec4* camera_position_c, glm::vec4* camera_view_vector, glm::vec4 camera_up_vector, float delta_t) {
-
+void CarMovement(bool look_at, Car* car, Box* car_collision, glm::vec4* camera_position_c, glm::vec4* camera_view_vector, glm::vec4 camera_up_vector, float delta_t)
+{
     glm::vec4 w = car->direction;
     w.y = 0;
     w = normalize(w);
@@ -709,33 +727,39 @@ void CarMovement(bool look_at, Car* car, Box* car_collision, glm::vec4* camera_p
 
         if (car->velocity > 1.0)
         {
-            car->steering_angle = glm::clamp(car->steering_angle + 0.0005f, -glm::radians(15.0f), glm::radians(15.0f));
+            car->steering_angle = glm::clamp(car->steering_angle - 0.0005f, -glm::radians(15.0f), glm::radians(15.0f));
         }
         else if (car->velocity < -1.0)
         {
-            car->steering_angle = glm::clamp(car->steering_angle - 0.0005f, -glm::radians(15.0f), glm::radians(15.0f));
+            car->steering_angle = glm::clamp(car->steering_angle + 0.0005f, -glm::radians(15.0f), glm::radians(15.0f));
         }
     }
     if (right)
     {
-
-
         if (car->velocity > 1.0)
-        {
-            car->steering_angle = glm::clamp(car->steering_angle - 0.0005f, -glm::radians(15.0f), glm::radians(15.0f));
-        }
-        else if (car->velocity < -1.0)
         {
             car->steering_angle = glm::clamp(car->steering_angle + 0.0005f, -glm::radians(15.0f), glm::radians(15.0f));
         }
+        else if (car->velocity < -1.0)
+        {
+            car->steering_angle = glm::clamp(car->steering_angle - 0.0005f, -glm::radians(15.0f), glm::radians(15.0f));
+        }
     }
+
     // Atualizando a direção do carro com base no ângulo de direção
     float angle = car->steering_angle;
-    glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), angle, glm::vec3(0.0f, 1.0f, 0.0f)); // Ver como esta função funciona
+    //glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), angle, glm::vec3(0.0f, 1.0f, 0.0f)); // Ver como esta função funciona
+    
+    glm::mat4 rotation = glm::mat4
+    (
+    cos(angle),  0.0f, sin(angle), 0.0f,
+    0.0f,        1.0f, 0.0f,       0.0f,
+    -sin(angle), 0.0f, cos(angle), 0.0f,
+    0.0f,        0.0f, 0.0f,       1.0f
+    );
+
     glm::vec4 new_direction = rotation * car->direction;
     car->direction = normalize(new_direction);
-
-
 
     // FREIO DO CARRO
     if (car_break)
@@ -778,14 +802,9 @@ void CarMovement(bool look_at, Car* car, Box* car_collision, glm::vec4* camera_p
     else
         car->velocity = 0;
 
-
     // Update the car's position using velocity and direction
     glm::vec4 movement = car->direction * car->velocity * delta_t;
     movement.y = car->gravity * delta_t; // Apply gravity to the movement, not the direction
-
-    //car->direction = car->direction * car->velocity * delta_t;
-    //car->direction.y = car->gravity  * delta_t;
-
 
     //Se carro caiu do mapa
     if (car->position.y <= -10.0){
@@ -811,11 +830,6 @@ void CarMovement(bool look_at, Car* car, Box* car_collision, glm::vec4* camera_p
 
     // Atualização da posição do carro
     car->position += movement;
-
-    // Update the car's position
-    //car->position += movement;
-
-
 }
 
 
@@ -1530,11 +1544,9 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
         }
     }
 
-
     // Se o usuário pressionar a tecla ESC, fechamos a janela.
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
         glfwSetWindowShouldClose(window, GL_TRUE);
-
 
     // Se o usuário apertar a tecla P, utilizamos projeção perspectiva.
     if (key == GLFW_KEY_P && action == GLFW_PRESS)
