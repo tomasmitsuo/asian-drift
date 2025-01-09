@@ -39,4 +39,7 @@ Box planes[] =  {Box(glm::vec4 (-22.0f,-1.0f,25.0f,1.0f), glm::vec4 (0.0f, 1.0f,
 
 Box cubes[] =   {Box(glm::vec4 (-22.0f, -1.0f, 25.0f, 1.0f), glm::vec4 (0.0f, 1.0f, 0.0f, 0.0f), 10.0, 2.5, 3.5)};
 
-Box coins[] =  {Box(glm::vec4 (-22.0f, -1.0f, -20.0f, 1.0f), glm::vec4 (0.0f, 1.0f, 0.0f, 0.0f), 5.0, 1.0, 1.0)};
+Box coins[] =  {Box(glm::vec4 (-22.0f, -1.0f, -20.0f, 1.0f), glm::vec4 (0.0f, 1.0f, 0.0f, 0.0f), 5.0, 1.0, 1.0),
+                Box(glm::vec4 (-22.0f, -1.0f, 70.0f, 1.0f), glm::vec4 (0.0f, 1.0f, 0.0f, 0.0f), 5.0, 1.0, 1.0),
+                Box(glm::vec4 (0.0f, -1.0f, 25.0f, 1.0f), glm::vec4 (0.0f, 1.0f, 0.0f, 0.0f), 5.0, 1.0, 1.0),
+                Box(glm::vec4 (-42.0f, -1.0f, 25.0f, 1.0f), glm::vec4 (0.0f, 1.0f, 0.0f, 0.0f), 5.0, 1.0, 1.0)};

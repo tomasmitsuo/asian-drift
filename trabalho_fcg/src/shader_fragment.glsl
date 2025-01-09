@@ -70,7 +70,7 @@ void main()
 
     vec4 n = normalize(normal);
 
-    vec4 l = normalize(vec4(0.0, 1.0, 0.0, 0.0));
+    vec4 l = normalize(vec4(1.0, 1.0, 0.0, 0.0));
     vec4 r = normalize(reflect(-l, n));
     vec4 v = normalize(camera_position - p);
 

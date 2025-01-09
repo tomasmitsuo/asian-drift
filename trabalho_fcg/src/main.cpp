@@ -23,6 +23,9 @@
 #include <stdexcept>
 #include <algorithm>
 
+
+#include <chrono>
+
 // Headers das bibliotecas OpenGL
 #include <glad/glad.h>   // Criação de contexto OpenGL 3.3
 #include <GLFW/glfw3.h>  // Criação de janelas do sistema operacional
@@ -159,7 +162,10 @@ void DrawPlanes();
 void DrawCar(glm::vec4 camera_view_vector, Car* car);
 void DrawCoin(float delta_t);
 void TextRendering_InfoCar(GLFWwindow* window);
-void BezierMovement(Box* coin, float t, float delta_t);
+void BezierMovement(Box* coin, float t, float delta_t, int i);
+
+void TextRendering_ShowCoins(GLFWwindow* window);
+void CountCoins();
 
 // Definimos uma estrutura que armazenará dados necessários para renderizar
 // cada objeto da cena virtual.
@@ -248,11 +254,16 @@ bool switch_camera_type = false;
 
 
 //variavel que atualiza a posição da moeda
-glm::vec4 coin_start_position = coins[0].position;
+// Inicializa um vetor para armazenar as posições iniciais de todas as moedas
+std::vector<glm::vec4> coin_start_position;
+
 
 
 int main(int argc, char* argv[])
 {
+    for (int i = 0; i < 4; i++) {
+        coin_start_position.push_back(coins[i].position);
+    }
     // Inicializamos a biblioteca GLFW, utilizada para criar uma janela do
     // sistema operacional, onde poderemos renderizar com OpenGL.
     int success = glfwInit();
@@ -326,8 +337,8 @@ int main(int argc, char* argv[])
    LoadTextureImage("../../data/redbull.png"); //BUNNY
     LoadTextureImage("../../data/gold.jpg"); //COIN
     LoadTextureImage("../../data/grass.jpg"); //PLANE
-    LoadTextureImage("../../data/hangar_concrete_floor_diff_4k.jpg"); //RACETRACK
-    LoadTextureImage("../../data/passion_fruit.jpg"); //BUILDING
+    LoadTextureImage("../../data/black.jpeg"); //RACETRACK
+    LoadTextureImage("../../data/inter.jpeg"); //BUILDING
 
 
     TextRendering_Init();
@@ -454,9 +465,13 @@ int main(int argc, char* argv[])
         // printf("angle: %.2f\n", temporary_bunny.steering_angle);
         // printf("\n");
 
+
+        CountCoins();
+
         glBindVertexArray(0);
         TextRendering_ShowFramesPerSecond(window);
         TextRendering_InfoCar(window);
+        TextRendering_ShowCoins(window);
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
@@ -519,38 +534,77 @@ void LoadTextureImage(const char* filename)
     g_NumLoadedTextures += 1;
 }
 
+
+// Variável global para controlar o tempo da última impressão
+auto last_print_time = std::chrono::steady_clock::now();
+
+// Array global para armazenar o valor de t para cada moeda
+float t_values[4] = {0.0f, 0.2f, 0.4f, 0.6f};
 //Desenha a moeda
-void DrawCoin(float delta_t){
-    // Fator de desaceleração (quanto menor, mais devagar o movimento)
-    float speed_factor = 0.5f;  // Aumente ou diminua esse valor conforme necessário
-    if (t<=1){
-        t+=delta_t*speed_factor;
-        BezierMovement(&coins[0], t, delta_t);
-    } else if (t>1)
-        t = 0;
-    glm::mat4 model = Matrix_Translate(coins[0].position.x, coins[0].position.y, coins[0].position.z)
-        * Matrix_Scale(3.0,3.0,3.0);
-    glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
-    glUniform1i(g_object_id_uniform, COIN);
-    DrawVirtualObject("the_coin");
+// Desenha a moeda
+void DrawCoin(float delta_t) {
+    // Controle da impressão uma vez por segundo
+    auto current_time = std::chrono::steady_clock::now();
+    std::chrono::duration<float> elapsed_seconds = current_time - last_print_time;
+
+    if (elapsed_seconds.count() >= 1.0f) {
+        // Printa o status de todas as moedas de uma vez
+        for (int i = 0; i < 4; i++) {
+            printf("Moeda %d: status = %d\n", i, coins[i].status);
+        }
+        last_print_time = current_time; // Atualiza o tempo da última impressão
+    }
+
+    // Checa se ela já foi pega com o status
+    for (int i = 0; i < 4; i++) {
+        Box& coin = coins[i]; 
+
+        if (coin.status) {
+            // Fator de desaceleração (quanto menor, mais devagar o movimento)
+            float speed_factor = 0.5f;  // Aumente ou diminua esse valor conforme necessário
+
+            // Atualiza o t correspondente à moeda atual
+            if (t_values[i] <= 1.0f) {
+                t_values[i] += delta_t * speed_factor;
+                BezierMovement(&coin, t_values[i], delta_t, i);
+            } else if (t_values[i] > 1.0f) {
+                t_values[i] = 0.0f;  // Reinicia t para a próxima animação
+            }
+
+            // Aplica as transformações para desenhar a moeda
+            glm::mat4 model = Matrix_Translate(coin.position.x, coin.position.y, coin.position.z)
+                * Matrix_Scale(3.0, 3.0, 3.0);
+            glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
+            glUniform1i(g_object_id_uniform, COIN);
+            DrawVirtualObject("the_coin");
+        }
+    }
+}
+//Conta o numero de morangos coletados ao longo das fases
+void CountCoins() {
+    temporary_bunny.coins = 0;
+    for (int i=0; i<=3; i++){
+        if (!coins[i].status)
+            temporary_bunny.coins ++;
+    }
 
 }
 
 // Realiza movimento em bézier do morango
-void BezierMovement(Box* coin, float t, float delta_t){
+void BezierMovement(Box* coin, float t, float delta_t, int i){
     glm::vec4 p[9];
     glm::vec4 c[8];
     glm::vec4 c2[7];
     glm::vec4 c3[6];
-    p[0] = coin_start_position + glm::vec4 (0.0f, 0.0f, 0.0f, 1.0f);
-    p[1] = coin_start_position + glm::vec4 (1.0f, 0.0f, 2.0f, 1.0f);
-    p[2] = coin_start_position + glm::vec4 (2.0f, 0.0f, 0.0f, 1.0f);
-    p[3] = coin_start_position + glm::vec4 (1.0f, 0.0f, -2.0f, 1.0f);
-    p[4] = coin_start_position + glm::vec4 (0.0f, 0.0f, 0.0f, 1.0f);
-    p[5] = coin_start_position + glm::vec4 (-1.0f, 0.0f, 2.0f, 1.0f);
-    p[6] = coin_start_position + glm::vec4 (-2.0f, 0.0f, 0.0f, 1.0f);
-    p[7] = coin_start_position + glm::vec4 (-1.0f, 0.0f, -2.0f, 1.0f);
-    p[8] = coin_start_position + glm::vec4 (0.0f, 0.0f, 0.0f, 1.0f);
+    p[0] = coin_start_position[i] + glm::vec4 (0.0f, 0.0f, 0.0f, 1.0f);
+    p[1] = coin_start_position[i] + glm::vec4 (1.0f, 0.0f, 2.0f, 1.0f);
+    p[2] = coin_start_position[i] + glm::vec4 (2.0f, 0.0f, 0.0f, 1.0f);
+    p[3] = coin_start_position[i] + glm::vec4 (1.0f, 0.0f, -2.0f, 1.0f);
+    p[4] = coin_start_position[i] + glm::vec4 (0.0f, 0.0f, 0.0f, 1.0f);
+    p[5] = coin_start_position[i] + glm::vec4 (-1.0f, 0.0f, 2.0f, 1.0f);
+    p[6] = coin_start_position[i] + glm::vec4 (-2.0f, 0.0f, 0.0f, 1.0f);
+    p[7] = coin_start_position[i] + glm::vec4 (-1.0f, 0.0f, -2.0f, 1.0f);
+    p[8] = coin_start_position[i] + glm::vec4 (0.0f, 0.0f, 0.0f, 1.0f);
 
     for (int i = 0; i < 8; i++){
         c[i] = p[i] + t*(p[(i+1)]-p[i]);
@@ -819,14 +873,20 @@ void CarMovement(bool look_at, Car* car, Box* car_collision, glm::vec4* camera_p
 
     //Checa colisões com os cubos
     for (Box cube : cubes){
-        movement = CubeCubeCollision(*car_collision, cube, movement);
+        glm::vec4 new_movement = CubeCubeCollision(*car_collision, cube, movement);
+
+        movement = new_movement;
+    
     }
 
-    //Checa colisões com os cubos
-    for (Box coin : coins){
-        movement = CubeCubeCollision(*car_collision, coin, movement);
+    for (Box& coin : coins) {  // Usa referência ao invés de cópia
+        if (CubeCubeCollision(*car_collision, coin, movement) != movement) {
+            coin.status = false;  // Atualiza o status no próprio objeto no array
+            printf("COLIDI com a moeda\n");
     }
+}
 
+    
 
     // Atualização da posição do carro
     car->position += movement;
@@ -1837,5 +1897,16 @@ void TextRendering_InfoCar(GLFWwindow* window){
                                          std::to_string(pos.y) + ", " +
                                          std::to_string(pos.z) + ")";
     TextRendering_PrintString(window, buffer3, -0.95f, 0.90f - lineheight, 1.0f);
+}
+
+
+void TextRendering_ShowCoins(GLFWwindow* window){
+    if (!g_ShowInfoText)
+        return;
+    float lineheight = TextRendering_LineHeight(window);
+    //float charwidth = TextRendering_CharWidth(window);
+    std::string buffer = "Coins: " + std::to_string(temporary_bunny.coins);
+
+    TextRendering_PrintString(window, buffer, -0.95f, -0.95f - lineheight, 1.0f);
 }
 

@@ -1,6 +1,6 @@
 file(REMOVE_RECURSE
-  "/home/tomas-ueda/Área de trabalho/projetos/asian-drift/trabalho_fcg/bin/Linux/main"
-  "/home/tomas-ueda/Área de trabalho/projetos/asian-drift/trabalho_fcg/bin/Linux/main.pdb"
+  "/home/kenji/github/asian-drift/trabalho_fcg/bin/Linux/main"
+  "/home/kenji/github/asian-drift/trabalho_fcg/bin/Linux/main.pdb"
   "CMakeFiles/main.dir/src/glad.c.o"
   "CMakeFiles/main.dir/src/glad.c.o.d"
   "CMakeFiles/main.dir/src/main.cpp.o"
