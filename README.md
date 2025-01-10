@@ -45,13 +45,13 @@ Ambos os alunos da dupla desenvolveram a lógica da aplicação. Durante o proce
 Foram implementadas 4 câmeras diferentes:
 
 - Camera Look-at apontando para o carro
-  ![Texto Alternativo](trabalho_fcg/imagens_readme/look_at.png)
+  ![Texto Alternativo](trabalho_fcg/data/look_at.png)
 - Câmera Livre
-  ![Texto Alternativo](trabalho_fcg/imagens_readme/livre.png)
+  ![Texto Alternativo](trabalho_fcg/data/livre.png)
 - Câmera traseira
-  ![Texto Alternativo](trabalho_fcg/imagens_readme/traseira.png)
+  ![Texto Alternativo](trabalho_fcg/data/traseira.png)
 - Câmera travada atrás do carro
-  ![Texto Alternativo](trabalho_fcg/imagens_readme/travada.png)
+  ![Texto Alternativo](trabalho_fcg/data/travada.png)
 
 #### TRANSFORMAÇÕES GEOMÉTRICAS
 
@@ -65,8 +65,8 @@ As transformações geométricas controladas pelos usuários estão ligadas a mo
 #### ILUMINAÇÃO
 
 Os objetos CARRO e MOEDA utilizaram a iluminação Blinn-Phong
-![Texto Alternativo](trabalho_fcg/imagens_readme/jogo1.png)
-![Texto Alternativo](trabalho_fcg/imagens_readme/moeda_jogo.png)
+![Texto Alternativo](trabalho_fcg/data/jogo1.png)
+![Texto Alternativo](trabalho_fcg/data/moeda_jogo.png)
 
 Os objetos PLANO, CASA, PISTA DE CORRIDA utilizaram a Iluminação de Lambert
 
